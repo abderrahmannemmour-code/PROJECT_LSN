@@ -5,8 +5,8 @@ ENV PYTHONUNBUFFERED=1
 
 COPY ./requirements.txt /tmp/requirements.txt
 COPY ./requirements.dev.txt /tmp/requirements.dev.txt
-COPY ./Stag_io /Stag_io
-WORKDIR /Stag_io
+COPY ./stag_io /stag_io
+WORKDIR /stag_io
 EXPOSE 8000
 ARG DEV=false
 RUN python -m venv /py && \
@@ -17,7 +17,8 @@ RUN python -m venv /py && \
     adduser \
         --disabled-password \
         --no-create-home \
-        django-user
+        django-user && \
+    chown -R django-user:django-user /stag_io
 
 ENV PATH="/py/bin:$PATH"
 
