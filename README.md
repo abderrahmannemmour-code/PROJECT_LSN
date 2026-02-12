@@ -25,38 +25,78 @@ This project was developed as part of the **L3TI Workshop (Atelier) 2025-2026** 
 
 ## 🛠️ Tech Stack
 
-*   **Frontend:** ReactJS / VueJS / AngularJS (Choose one)
-*   **Backend:** NodeJS (Express) / PHP (Laravel) / Python (Django/FastAPI)
-*   **Database:** MongoDB / MySQL / PostgreSQL
-*   **Authentication:** JWT (JSON Web Tokens)
-*   **PDF Generation:** Libraries for dynamic PDF creation (e.g., PDFKit, FPDF, ReportLab)
+### Backend (Current Implementation)
+*   **Framework:** Python Django 3.2 with Django REST Framework 3.12
+*   **Database:** PostgreSQL 13 (Alpine)
+*   **Containerization:** Docker & Docker Compose
+*   **Linting:** Flake8
+
+### Frontend (Planned)
+*   To be implemented
 
 ## 📦 Installation & Setup
 
+### Prerequisites
+*   Docker & Docker Compose installed on your machine
+
+### Backend Setup
+
 1.  **Clone the repository**
     ```bash
-    git clone https://github.com/yourusername/stag-io.git
-    cd stag-io
+    git clone https://github.com/abderrahmannemmour-code/PROJECT_LSN.git
+    cd PROJECT_LSN
     ```
 
-2.  **Backend Setup**
+2.  **Build and run with Docker Compose**
     ```bash
-    cd backend
-    # Install dependencies (Example for Node.js)
-    npm install
-    # Configure environment variables (.env)
-    # Start the server
-    npm start
+    cd Back-end
+    docker-compose up --build
     ```
+    This will:
+    - Build the Django application image (Python 3.9 Alpine)
+    - Start a PostgreSQL 13 database container
+    - Start the Django development server on `http://localhost:8000`
 
-3.  **Frontend Setup**
-    ```bash
-    cd frontend
-    # Install dependencies
-    npm install
-    # Start the development server
-    npm run dev
-    ```
+3.  **Environment Variables** (configured in docker-compose.yaml)
+    - `DB_HOST`: db
+    - `DB_NAME`: devdb
+    - `DB_USER`: devuser
+    - `DB_PASS`: changeme
+
+### Running Commands in the Container
+```bash
+# Run migrations
+docker-compose run --rm stag_io sh -c "python manage.py migrate"
+
+# Create superuser
+docker-compose run --rm stag_io sh -c "python manage.py createsuperuser"
+
+# Run tests
+docker-compose run --rm stag_io sh -c "python manage.py test"
+
+# Lint with flake8
+docker-compose run --rm stag_io sh -c "flake8"
+```
+
+## 📁 Project Structure
+
+```
+Back-end/
+├── Docker-compose.yaml     # Docker Compose configuration
+├── Dockerfile              # Docker image definition
+├── requirements.txt        # Production dependencies
+├── requirements.dev.txt    # Development dependencies (flake8)
+└── stag_io/
+    ├── manage.py           # Django management script
+    ├── core/               # Core app with custom commands
+    │   └── management/
+    │       └── commands/
+    │           └── wait_for_db.py  # Custom DB wait command
+    └── stag_io/
+        ├── settings.py     # Django settings
+        ├── urls.py         # URL configuration
+        └── wsgi.py         # WSGI entry point
+```
 
 ## 📄 Project Context
 *   **Course:** L3TI Workshop (Atelier)
