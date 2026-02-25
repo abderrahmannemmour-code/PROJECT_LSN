@@ -1,11 +1,20 @@
 """Database models."""
-from django.conf import settings
+import os
+import uuid
+
 from django.db import models
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
     PermissionsMixin,
 )
+
+
+def logo_image_file_path(instance, filename):
+    """Generate file path for new logo image."""
+    ext = os.path.splitext(filename)[1]
+    filename = f'{uuid.uuid4()}{ext}'
+    return os.path.join('uploads', 'logo', filename)
 
 
 class UserManager(BaseUserManager):
@@ -26,7 +35,7 @@ class UserManager(BaseUserManager):
         """Create and return a Django superuser (system administrator)."""
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('role', self.model.Roles.ADMIN)
+        extra_fields.setdefault('role', User.Roles.ADMIN)
 
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superuser must have is_staff=True.')
@@ -35,42 +44,9 @@ class UserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
-    def create_student(self, email, password, full_name, wilaya, **extra_fields):
-        """Create a user with role='student' and a Student profile."""
-        extra_fields['role'] = 'student'
-        user = self.create_user(email, password, **extra_fields)
-        Student.objects.create(
-            user=user,
-            full_name=full_name,
-            wilaya=wilaya,
-        )
-        return user
-
-    def create_company(self, email, password, name, wilaya, **extra_fields):
-        """Create a user with role='company' and a Company profile."""
-        extra_fields['role'] = 'company'
-        user = self.create_user(email, password, **extra_fields)
-        Company.objects.create(
-            user=user,
-            name=name,
-            wilaya=wilaya,
-        )
-        return user
-
-    def create_admin(self, email, password, department, title, **extra_fields):
-        """Create a user with role='admin' and an AdminProfile."""
-        extra_fields['role'] = 'admin'
-        user = self.create_user(email, password, **extra_fields)
-        Admin.objects.create(
-            user=user,
-            department=department,
-            title=title,
-        )
-        return user
-
 
 class User(AbstractBaseUser, PermissionsMixin):
-    """Custom user model for the platform."""
+    """Base user model for the platform."""
 
     class Roles(models.TextChoices):
         STUDENT = 'student', 'Student'
@@ -94,51 +70,63 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
-class Student(models.Model):
-    """Student profile linked to a user account."""
+class Student(User):
+    """Student user — inherits all User fields directly."""
 
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='student_profile',
-    )
     full_name = models.CharField(max_length=255)
     wilaya = models.CharField(max_length=100)
     github_link = models.URLField(max_length=255, blank=True)
     portfolio_link = models.URLField(max_length=255, blank=True)
 
+    class Meta:
+        verbose_name = 'Student'
+        verbose_name_plural = 'Students'
+
+    def save(self, *args, **kwargs):
+        self.role = User.Roles.STUDENT
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.full_name
 
 
-class Company(models.Model):
-    """Company profile linked to a user account."""
+class Company(User):
+    """Company user — inherits all User fields directly."""
 
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='company_profile',
-    )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    logo = models.ImageField(upload_to='company_logos/', null=True, blank=True)
+    logo = models.ImageField(null=True, blank=True, upload_to=logo_image_file_path)
     wilaya = models.CharField(max_length=100)
     website = models.URLField(max_length=255, blank=True)
+
+    class Meta:
+        verbose_name = 'Company'
+        verbose_name_plural = 'Companies'
+
+    def save(self, *args, **kwargs):
+        self.role = User.Roles.COMPANY
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
 
 
-class Admin(models.Model):
-    """Admin profile linked to a user account."""
+class Admin(User):
+    """Admin user — inherits all User fields directly."""
 
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='admin_profile',
-    )
     department = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
+
+    class Meta:
+        verbose_name = 'Admin'
+        verbose_name_plural = 'Admins'
+
+    def save(self, *args, **kwargs):
+        self.role = User.Roles.ADMIN
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.title} - {self.email}'
 
     def __str__(self):
         return f'{self.title} - {self.user.email}'
