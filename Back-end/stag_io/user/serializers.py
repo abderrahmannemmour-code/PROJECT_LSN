@@ -22,6 +22,21 @@ class StudentRegisterSerializer(serializers.ModelSerializer):
             'github_link', 'portfolio_link',
         ]
 
+    def validate_email(self, value):
+        """Ensure the student registers with a university email."""
+        allowed_domains = [
+            'univ.dz',
+            'edu.dz',
+            'etu.univ.dz',
+        ]
+        domain = value.split('@')[-1].lower()
+        if not any(domain == d or domain.endswith('.' + d) for d in allowed_domains):
+            raise serializers.ValidationError(
+                'Students must register with a university email '
+                f'(e.g. name@univ.dz). Allowed domains: {", ".join(allowed_domains)}'
+            )
+        return value
+
     def create(self, validated_data):
         """Create and return a student with encrypted password."""
         password = validated_data.pop('password')
@@ -63,6 +78,44 @@ class UserDetailSerializer(serializers.ModelSerializer):
         model = get_user_model()
         fields = ['id', 'email', 'role', 'is_active', 'created_at']
         read_only_fields = ['id', 'role', 'is_active', 'created_at']
+
+
+class StudentUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating student profile fields."""
+
+    class Meta:
+        model = Student
+        fields = [
+            'id', 'email',
+            'full_name', 'wilaya',
+            'github_link', 'portfolio_link',
+        ]
+        read_only_fields = ['id', 'email']
+        extra_kwargs = {
+            'full_name': {'required': False},
+            'wilaya': {'required': False},
+            'github_link': {'required': False, 'allow_blank': True},
+            'portfolio_link': {'required': False, 'allow_blank': True},
+        }
+
+
+class CompanyUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating company profile fields."""
+
+    class Meta:
+        model = Company
+        fields = [
+            'id', 'email',
+            'name', 'description',
+            'wilaya', 'website',
+        ]
+        read_only_fields = ['id', 'email']
+        extra_kwargs = {
+            'name': {'required': False},
+            'description': {'required': False},
+            'wilaya': {'required': False},
+            'website': {'required': False, 'allow_blank': True},
+        }
 
 class LogoImageSerializer(serializers.ModelSerializer):
     """Serializer for uploading images to logos."""

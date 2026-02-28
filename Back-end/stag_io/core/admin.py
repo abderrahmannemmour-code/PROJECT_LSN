@@ -50,7 +50,7 @@ class StudentAdmin(BaseUserAdmin):
     list_filter = ['wilaya', 'is_active']
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        (_('Student Info'), {'fields': ('full_name', 'wilaya', 'github_link', 'portfolio_link')}),
+        (_('Student Info'), {'fields': ('full_name', 'wilaya', 'github_link', 'portfolio_link', 'profile_image')}),
         (_('Permissions'), {'fields': ('is_active',)}),
         (_('Important dates'), {'fields': ('last_login',)}),
     )

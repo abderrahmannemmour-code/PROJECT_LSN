@@ -44,6 +44,16 @@ urlpatterns = [
         name='me',
     ),
     path(
+        'me/student/',
+        views.StudentUpdateView.as_view(),
+        name='student-update',
+    ),
+    path(
+        'me/company/',
+        views.CompanyUpdateView.as_view(),
+        name='company-update',
+    ),
+    path(
         '<int:pk>/delete/',
         views.AdminDeleteUserView.as_view(),
         name='admin-delete-user',

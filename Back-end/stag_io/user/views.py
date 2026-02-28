@@ -10,6 +10,8 @@ from user.serializers import (
     StudentRegisterSerializer,
     CompanyRegisterSerializer,
     UserDetailSerializer,
+    StudentUpdateSerializer,
+    CompanyUpdateSerializer,
     LogoImageSerializer,
     ProfileImageSerializer,
 )
@@ -58,6 +60,32 @@ class AdminDeleteUserView(generics.DestroyAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdmin]
     lookup_field = 'pk'
+
+
+@extend_schema(tags=['Student'])
+class StudentUpdateView(generics.RetrieveUpdateAPIView):
+    """View and update student profile (full_name, wilaya, links)."""
+    serializer_class = StudentUpdateSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get', 'patch']
+
+    def get_object(self):
+        from core.models import Student
+        return Student.objects.get(pk=self.request.user.pk)
+
+
+@extend_schema(tags=['Company'])
+class CompanyUpdateView(generics.RetrieveUpdateAPIView):
+    """View and update company profile (name, description, wilaya, website)."""
+    serializer_class = CompanyUpdateSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get', 'patch']
+
+    def get_object(self):
+        from core.models import Company
+        return Company.objects.get(pk=self.request.user.pk)
 
 
 @extend_schema(tags=['Company'])
