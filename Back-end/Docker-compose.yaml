@@ -8,6 +8,7 @@ services:
       - "8000:8000"
     volumes:
       - ./stag_io:/stag_io
+      - dev-static-data:/vol/web
     user: root
     command: >
       sh -c "python manage.py wait_for_db &&
@@ -31,3 +32,4 @@ services:
 
 volumes:
   dev-db-data:
+  dev-static-data:

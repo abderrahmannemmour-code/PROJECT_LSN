@@ -17,6 +17,13 @@ def logo_image_file_path(instance, filename):
     return os.path.join('uploads', 'logo', filename)
 
 
+def profile_image_file_path(instance, filename):
+    """Generate file path for new student profile image."""
+    ext = os.path.splitext(filename)[1]
+    filename = f'{uuid.uuid4()}{ext}'
+    return os.path.join('uploads', 'profile', filename)
+
+
 class UserManager(BaseUserManager):
     """Manager for users."""
 
@@ -77,6 +84,9 @@ class Student(User):
     wilaya = models.CharField(max_length=100)
     github_link = models.URLField(max_length=255, blank=True)
     portfolio_link = models.URLField(max_length=255, blank=True)
+    profile_image = models.ImageField(
+        null=True, blank=True, upload_to=profile_image_file_path,
+    )
 
     class Meta:
         verbose_name = 'Student'

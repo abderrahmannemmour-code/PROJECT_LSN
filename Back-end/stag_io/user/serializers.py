@@ -43,7 +43,7 @@ class CompanyRegisterSerializer(serializers.ModelSerializer):
         model = Company
         fields = [
             'email', 'password',
-            'name', 'description', 'logo',
+            'name', 'description',
             'wilaya', 'website',
         ]
 
@@ -63,3 +63,26 @@ class UserDetailSerializer(serializers.ModelSerializer):
         model = get_user_model()
         fields = ['id', 'email', 'role', 'is_active', 'created_at']
         read_only_fields = ['id', 'role', 'is_active', 'created_at']
+
+class LogoImageSerializer(serializers.ModelSerializer):
+    """Serializer for uploading images to logos."""
+
+    class Meta:
+        model = Company
+        fields = ['id', 'logo']
+        read_only_fields = ['id']
+        extra_kwargs = {
+            'logo': {'required': True},
+        }
+
+
+class ProfileImageSerializer(serializers.ModelSerializer):
+    """Serializer for uploading student profile images."""
+
+    class Meta:
+        model = Student
+        fields = ['id', 'profile_image']
+        read_only_fields = ['id']
+        extra_kwargs = {
+            'profile_image': {'required': True},
+        }

@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -5,6 +6,14 @@ from rest_framework_simplejwt.views import (
 from django.urls import path
 
 from user import views
+
+
+TaggedTokenObtainPairView = extend_schema(tags=['Auth'])(
+    TokenObtainPairView
+)
+TaggedTokenRefreshView = extend_schema(tags=['Auth'])(
+    TokenRefreshView
+)
 
 app_name = 'user'
 
@@ -21,12 +30,12 @@ urlpatterns = [
     ),
     path(
         'token/',
-        TokenObtainPairView.as_view(),
+        TaggedTokenObtainPairView.as_view(),
         name='token-obtain',
     ),
     path(
         'token/refresh/',
-        TokenRefreshView.as_view(),
+        TaggedTokenRefreshView.as_view(),
         name='token-refresh',
     ),
     path(
@@ -38,5 +47,15 @@ urlpatterns = [
         '<int:pk>/delete/',
         views.AdminDeleteUserView.as_view(),
         name='admin-delete-user',
+    ),
+    path(
+        'me/upload-logo/',
+        views.CompanyLogoUploadView.as_view(),
+        name='upload-logo',
+    ),
+    path(
+        'me/upload-profile-image/',
+        views.StudentProfileImageUploadView.as_view(),
+        name='upload-profile-image',
     ),
 ]
