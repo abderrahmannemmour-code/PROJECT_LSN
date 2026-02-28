@@ -1,104 +1,107 @@
-# Stag.io - Internship Management & Matching Platform
+# Stag.io
 
-**Stag.io** is a full-stack web application designed to bridge the gap between Students, Companies, and University Administration. It streamlines the internship search process, facilitates student-company matching, and digitizes the administrative workflow for internship agreements (*Conventions de Stage*).
+Internship management platform connecting **Students**, **Companies**, and **University Administration**.  
+Built for the L3TI Workshop 2025-2026.
 
-This project was developed as part of the **L3TI Workshop (Atelier) 2025-2026** to address the challenges of manual internship management.
+---
 
-## 🚀 Features
+## Tech Stack
 
-### 🎓 1. Student Space
-*   **Secure Authentication:** Sign up/Login (Institutional Email integration recommended).
-*   **Digital CV:** Build a profile with personal details, GitHub/Portfolio links, and specific skill tags (e.g., React, Java, Python).
-*   **Smart Search:** Filter internship offers by location (Wilaya), technology, and type.
-*   **Applications:** One-click application to interest companies.
+| Layer     | Technology                                      |
+| --------- | ----------------------------------------------- |
+| Framework | Django 3.2 + Django REST Framework 3.12         |
+| Auth      | Simple JWT (access 30 min / refresh 7 days)     |
+| Database  | PostgreSQL 13                                   |
+| Docs      | drf-spectacular (Swagger UI)                    |
+| Container | Docker & Docker Compose                         |
+| Linting   | Flake8                                          |
 
-### 🏢 2. Company Space (Recruiters)
-*   **Brand Profile:** Manage company logo, description, and location.
-*   **Offer Management:** Create, edit, and delete internship opportunities.
-*   **Candidate Dashboard:** View applicants and change their status (**Accept** or **Refuse**).
-    *   *Accepting a candidate triggers the administrative validation process.*
+---
 
-### 🏛️ 3. Administration Space
-*   **Placement Validation:** Notifications when a company selects a student.
-*   **Automated Documents:** Instantly generate official **Internship Agreements (PDF)** pre-filled with student, company, and university data.
-*   **Statistics:** specific dashboards to track placed vs. unplaced students.
+## Data Models
 
-## 🛠️ Tech Stack
+- **User** — base model (email login, roles: `student` / `company` / `admin`)
+- **Student** — full_name, wilaya, github_link, portfolio_link, profile_image
+- **Company** — name, description, wilaya, website, logo
+- **Admin** — department, title
 
-### Backend (Current Implementation)
-*   **Framework:** Python Django 3.2 with Django REST Framework 3.12
-*   **Database:** PostgreSQL 13 (Alpine)
-*   **Containerization:** Docker & Docker Compose
-*   **Linting:** Flake8
+---
 
-### Frontend (Planned)
-*   To be implemented
+## API Endpoints
 
-## 📦 Installation & Setup
+Base path: `/api/user/`
+
+| Method | Endpoint                    | Description                     | Auth     |
+| ------ | --------------------------- | ------------------------------- | -------- |
+| POST   | `register/student/`         | Register a student              | None     |
+| POST   | `register/company/`         | Register a company              | None     |
+| POST   | `token/`                    | Obtain JWT access/refresh pair  | None     |
+| POST   | `token/refresh/`            | Refresh an access token         | None     |
+| GET    | `me/`                       | Get current user info           | JWT      |
+| PATCH  | `me/`                       | Update current user             | JWT      |
+| GET    | `me/student/`               | Get student profile             | JWT      |
+| PATCH  | `me/student/`               | Update student profile          | JWT      |
+| GET    | `me/company/`               | Get company profile             | JWT      |
+| PATCH  | `me/company/`               | Update company profile          | JWT      |
+| PATCH  | `me/upload-logo/`           | Upload company logo             | JWT      |
+| PATCH  | `me/upload-profile-image/`  | Upload student profile image    | JWT      |
+| DELETE | `<id>/delete/`              | Delete any user (admin only)    | JWT      |
+
+Swagger docs available at `/api/docs/`.
+
+---
+
+## Getting Started
 
 ### Prerequisites
-*   Docker & Docker Compose installed on your machine
 
-### Backend Setup
+- Docker & Docker Compose
 
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/abderrahmannemmour-code/PROJECT_LSN.git
-    cd PROJECT_LSN
-    ```
+### Run
 
-2.  **Build and run with Docker Compose**
-    ```bash
-    cd Back-end
-    docker-compose up --build
-    ```
-    This will:
-    - Build the Django application image (Python 3.9 Alpine)
-    - Start a PostgreSQL 13 database container
-    - Start the Django development server on `http://localhost:8000`
-
-3.  **Environment Variables** (configured in docker-compose.yaml)
-    - `DB_HOST`: db
-    - `DB_NAME`: devdb
-    - `DB_USER`: devuser
-    - `DB_PASS`: changeme
-
-### Running Commands in the Container
 ```bash
-# Run migrations
-docker-compose run --rm stag_io sh -c "python manage.py migrate"
+git clone https://github.com/abderrahmannemmour-code/PROJECT_LSN.git
+cd PROJECT_LSN/Back-end
+docker-compose up --build
+```
 
+The server starts at **http://localhost:8000**.  
+Migrations run automatically on startup.
+
+### Useful Commands
+
+```bash
 # Create superuser
 docker-compose run --rm stag_io sh -c "python manage.py createsuperuser"
 
 # Run tests
 docker-compose run --rm stag_io sh -c "python manage.py test"
 
-# Lint with flake8
+# Lint
 docker-compose run --rm stag_io sh -c "flake8"
 ```
 
-## 📁 Project Structure
+### Environment Variables (docker-compose.yaml)
+
+| Variable  | Value    |
+| --------- | -------- |
+| DB_HOST   | db       |
+| DB_NAME   | devdb    |
+| DB_USER   | devuser  |
+| DB_PASS   | changeme |
+
+---
+
+## Project Structure
 
 ```
 Back-end/
-├── Docker-compose.yaml     # Docker Compose configuration
-├── Dockerfile              # Docker image definition
-├── requirements.txt        # Production dependencies
-├── requirements.dev.txt    # Development dependencies (flake8)
+├── Docker-compose.yaml
+├── Dockerfile
+├── requirements.txt
 └── stag_io/
-    ├── manage.py           # Django management script
-    ├── core/               # Core app with custom commands
-    │   └── management/
-    │       └── commands/
-    │           └── wait_for_db.py  # Custom DB wait command
-    └── stag_io/
-        ├── settings.py     # Django settings
-        ├── urls.py         # URL configuration
-        └── wsgi.py         # WSGI entry point
+    ├── manage.py
+    ├── core/           # Custom user models, wait_for_db command
+    ├── user/           # Registration, auth, profile API
+    └── stag_io/        # Django settings & URL config
 ```
-
-## 📄 Project Context
-*   **Course:** L3TI Workshop (Atelier)
-*   **Semester:** 2nd Semester, 2025-2026
-*   **Goal:** Strengthen University-Enterprise links and digitize administration.
