@@ -1,7 +1,7 @@
 """Serializers for the administration API."""
 from rest_framework import serializers
 
-from core.models import Internship
+from core.models import Internship, Notification
 
 
 class AdminInternshipSerializer(serializers.ModelSerializer):
@@ -38,3 +38,40 @@ class AdminInternshipSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    """Serializer for admin notifications."""
+    internship_id = serializers.IntegerField(
+        source='internship.id', read_only=True,
+    )
+    student_name = serializers.CharField(
+        source='internship.student.full_name', read_only=True,
+    )
+    company_name = serializers.CharField(
+        source='internship.company.name', read_only=True,
+    )
+    internship_subject = serializers.CharField(
+        source='internship.subject', read_only=True,
+    )
+    internship_status = serializers.CharField(
+        source='internship.status', read_only=True,
+    )
+
+    class Meta:
+        model = Notification
+        fields = [
+            'id',
+            'internship_id',
+            'notification_type',
+            'message',
+            'student_name',
+            'company_name',
+            'internship_subject',
+            'internship_status',
+            'is_read',
+            'created_at',
+        ]
+        read_only_fields = [
+            'id', 'notification_type', 'message', 'created_at',
+        ]

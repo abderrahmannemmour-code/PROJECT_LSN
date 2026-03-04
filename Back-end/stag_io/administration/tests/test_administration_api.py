@@ -12,11 +12,13 @@ from core.models import (
     Company,
     Admin,
     Internship,
+    Notification,
 )
 
 
 INTERNSHIP_LIST_URL = reverse('administration:internship-list')
-INTERNSHIP_PENDING_URL = reverse('administration:internship-pending')
+NOTIFICATION_LIST_URL = reverse('administration:notification-list')
+NOTIFICATION_UNREAD_URL = reverse('administration:notification-unread')
 
 
 def internship_detail_url(internship_id):
@@ -29,6 +31,10 @@ def internship_validate_url(internship_id):
 
 def internship_reject_url(internship_id):
     return reverse('administration:internship-reject', args=[internship_id])
+
+
+def notification_read_url(notification_id):
+    return reverse('administration:notification-read', args=[notification_id])
 
 
 def create_university(**params):
@@ -99,6 +105,17 @@ def create_internship(student, company, **params):
     )
 
 
+def create_notification(recipient, internship, **params):
+    defaults = {
+        'notification_type': Notification.Type.INTERNSHIP_ACCEPTED,
+        'message': f'{internship.company.name} accepted {internship.student.full_name}',
+    }
+    defaults.update(params)
+    return Notification.objects.create(
+        recipient=recipient, internship=internship, **defaults,
+    )
+
+
 class PublicAdministrationApiTests(TestCase):
     """Test unauthenticated access is denied."""
 
@@ -107,10 +124,6 @@ class PublicAdministrationApiTests(TestCase):
 
     def test_internship_list_requires_auth(self):
         res = self.client.get(INTERNSHIP_LIST_URL)
-        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_pending_list_requires_auth(self):
-        res = self.client.get(INTERNSHIP_PENDING_URL)
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
@@ -160,22 +173,6 @@ class AdminInternshipListTests(TestCase):
         self.assertEqual(len(res.data), 1)
         self.assertEqual(
             res.data[0]['student_name'], self.student.full_name,
-        )
-
-    def test_list_pending_internships(self):
-        """Only accepted_by_company internships appear in pending list."""
-        create_internship(self.student, self.company)
-        create_internship(
-            self.student, self.company,
-            status=Internship.Status.PENDING,
-        )
-
-        res = self.client.get(INTERNSHIP_PENDING_URL)
-
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(res.data), 1)
-        self.assertEqual(
-            res.data[0]['status'], Internship.Status.ACCEPTED_BY_COMPANY,
         )
 
 
@@ -242,4 +239,133 @@ class AdminValidateRejectTests(TestCase):
         res = self.client.patch(internship_validate_url(internship.id))
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class PublicNotificationApiTests(TestCase):
+    """Test unauthenticated access to notification endpoints is denied."""
+
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_notification_list_requires_auth(self):
+        res = self.client.get(NOTIFICATION_LIST_URL)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_unread_notifications_requires_auth(self):
+        res = self.client.get(NOTIFICATION_UNREAD_URL)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class NonAdminNotificationAccessTests(TestCase):
+    """Test that non-admin users cannot access notification endpoints."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.university = create_university()
+        self.student = create_student(self.university)
+        self.client.force_authenticate(user=self.student)
+
+    def test_student_cannot_list_notifications(self):
+        res = self.client.get(NOTIFICATION_LIST_URL)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_student_cannot_list_unread_notifications(self):
+        res = self.client.get(NOTIFICATION_UNREAD_URL)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class AdminNotificationTests(TestCase):
+    """Test admin notification endpoints."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.university = create_university()
+        self.admin_user = create_admin_user(self.university)
+        self.student = create_student(self.university)
+        self.company = create_company()
+        self.client.force_authenticate(user=self.admin_user)
+
+    def test_list_notifications(self):
+        """Admin sees their own notifications."""
+        internship = create_internship(self.student, self.company)
+        create_notification(self.admin_user, internship)
+
+        res = self.client.get(NOTIFICATION_LIST_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['student_name'], self.student.full_name)
+        self.assertEqual(res.data[0]['company_name'], self.company.name)
+
+    def test_list_unread_notifications(self):
+        """Only unread notifications are returned."""
+        internship = create_internship(self.student, self.company)
+        create_notification(self.admin_user, internship)
+        create_notification(
+            self.admin_user, internship, is_read=True,
+        )
+
+        res = self.client.get(NOTIFICATION_UNREAD_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertFalse(res.data[0]['is_read'])
+
+    def test_mark_notification_as_read(self):
+        """PATCH marks a notification as read."""
+        internship = create_internship(self.student, self.company)
+        notification = create_notification(self.admin_user, internship)
+
+        res = self.client.patch(notification_read_url(notification.id))
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        notification.refresh_from_db()
+        self.assertTrue(notification.is_read)
+
+    def test_cannot_read_other_admin_notification(self):
+        """Admin cannot mark another admin's notification as read."""
+        other_uni = create_university(name='Other Uni', code='OTH')
+        other_admin = create_admin_user(
+            other_uni, email='other_admin@example.com',
+        )
+        internship = create_internship(self.student, self.company)
+        notification = create_notification(other_admin, internship)
+
+        res = self.client.patch(notification_read_url(notification.id))
+
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_admin_only_sees_own_notifications(self):
+        """Admin does not see notifications for other admins."""
+        other_uni = create_university(name='Other Uni', code='OTH')
+        other_admin = create_admin_user(
+            other_uni, email='other_admin@example.com',
+        )
+        internship = create_internship(self.student, self.company)
+        create_notification(other_admin, internship)
+
+        res = self.client.get(NOTIFICATION_LIST_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 0)
+
+    def test_validate_marks_notification_as_read(self):
+        """Validating an internship auto-marks related notifications as read."""
+        internship = create_internship(self.student, self.company)
+        notification = create_notification(self.admin_user, internship)
+
+        self.client.patch(internship_validate_url(internship.id))
+
+        notification.refresh_from_db()
+        self.assertTrue(notification.is_read)
+
+    def test_reject_marks_notification_as_read(self):
+        """Rejecting an internship auto-marks related notifications as read."""
+        internship = create_internship(self.student, self.company)
+        notification = create_notification(self.admin_user, internship)
+
+        self.client.patch(internship_reject_url(internship.id))
+
+        notification.refresh_from_db()
+        self.assertTrue(notification.is_read)
 

@@ -206,3 +206,34 @@ class Internship(models.Model):
 
     def __str__(self):
         return f'{self.student.full_name} @ {self.company.name} — {self.status}'
+
+
+class Notification(models.Model):
+    """Notification sent to an admin when an internship needs attention."""
+
+    class Type(models.TextChoices):
+        INTERNSHIP_ACCEPTED = 'internship_accepted', 'Internship Accepted by Company'
+        INTERNSHIP_VALIDATED = 'internship_validated', 'Internship Validated'
+        INTERNSHIP_REJECTED = 'internship_rejected', 'Internship Rejected'
+
+    recipient = models.ForeignKey(
+        Admin, on_delete=models.CASCADE, related_name='notifications',
+    )
+    internship = models.ForeignKey(
+        Internship, on_delete=models.CASCADE, related_name='notifications',
+    )
+    notification_type = models.CharField(
+        max_length=30,
+        choices=Type.choices,
+    )
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Notification'
+        verbose_name_plural = 'Notifications'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.notification_type} → {self.recipient.email}'

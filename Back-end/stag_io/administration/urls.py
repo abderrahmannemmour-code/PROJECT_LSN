@@ -6,15 +6,27 @@ from administration import views
 app_name = 'administration'
 
 urlpatterns = [
+    # Notifications
+    path(
+        'notifications/',
+        views.NotificationListView.as_view(),
+        name='notification-list',
+    ),
+    path(
+        'notifications/unread/',
+        views.UnreadNotificationListView.as_view(),
+        name='notification-unread',
+    ),
+    path(
+        'notifications/<int:pk>/read/',
+        views.MarkNotificationReadView.as_view(),
+        name='notification-read',
+    ),
+    # Internships
     path(
         'internships/',
         views.AllInternshipListView.as_view(),
         name='internship-list',
-    ),
-    path(
-        'internships/pending/',
-        views.PendingInternshipListView.as_view(),
-        name='internship-pending',
     ),
     path(
         'internships/<int:pk>/',

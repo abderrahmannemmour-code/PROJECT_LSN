@@ -52,7 +52,7 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
-@extend_schema(tags=['Admin'])
+@extend_schema(tags=['Superuser'])
 class AdminDeleteUserView(generics.DestroyAPIView):
     """Allow an admin to delete any user by ID."""
     queryset = get_user_model().objects.all()
