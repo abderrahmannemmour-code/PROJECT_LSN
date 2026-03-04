@@ -31,6 +31,7 @@ urlpatterns = [
         name='api-docs',
     ),
     path('api/user/', include('user.urls')),
+    path('api/administration/', include('administration.urls')),
 ]
 
 if settings.DEBUG:
