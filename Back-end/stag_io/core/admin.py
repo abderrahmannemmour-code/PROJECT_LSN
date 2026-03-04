@@ -50,7 +50,7 @@ class StudentAdmin(BaseUserAdmin):
     list_filter = ['wilaya', 'is_active']
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        (_('Student Info'), {'fields': ('full_name', 'wilaya', 'github_link', 'portfolio_link', 'profile_image')}),
+        (_('Student Info'), {'fields': ('full_name', 'university', 'wilaya', 'github_link', 'portfolio_link', 'profile_image')}),
         (_('Permissions'), {'fields': ('is_active',)}),
         (_('Important dates'), {'fields': ('last_login',)}),
     )
@@ -58,7 +58,7 @@ class StudentAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'full_name', 'wilaya'),
+            'fields': ('email', 'password1', 'password2', 'full_name', 'university', 'wilaya'),
         }),
     )
 
@@ -92,7 +92,7 @@ class AdminProfileAdmin(BaseUserAdmin):
     list_filter = ['department', 'is_active']
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        (_('Admin Info'), {'fields': ('department', 'title')}),
+        (_('Admin Info'), {'fields': ('university', 'department', 'title')}),
         (_('Permissions'), {'fields': ('is_active',)}),
         (_('Important dates'), {'fields': ('last_login',)}),
     )
@@ -100,7 +100,7 @@ class AdminProfileAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'department', 'title'),
+            'fields': ('email', 'password1', 'password2', 'university', 'department', 'title'),
         }),
     )
 
@@ -109,3 +109,5 @@ admin.site.register(models.User, UserAdmin)
 admin.site.register(models.Student, StudentAdmin)
 admin.site.register(models.Company, CompanyAdmin)
 admin.site.register(models.Admin, AdminProfileAdmin)
+admin.site.register(models.University)
+admin.site.register(models.Internship)

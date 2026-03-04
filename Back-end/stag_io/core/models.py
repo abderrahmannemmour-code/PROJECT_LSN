@@ -24,6 +24,31 @@ def profile_image_file_path(instance, filename):
     return os.path.join('uploads', 'profile', filename)
 
 
+def university_logo_file_path(instance, filename):
+    """Generate file path for new university logo image."""
+    ext = os.path.splitext(filename)[1]
+    filename = f'{uuid.uuid4()}{ext}'
+    return os.path.join('uploads', 'university', filename)
+
+
+class University(models.Model):
+    """Represents a university institution."""
+    name = models.CharField(max_length=255)
+    code = models.CharField(max_length=50, unique=True)
+    wilaya = models.CharField(max_length=100)
+    address = models.TextField(blank=True)
+    logo = models.ImageField(
+        null=True, blank=True, upload_to=university_logo_file_path,
+    )
+
+    class Meta:
+        verbose_name = 'University'
+        verbose_name_plural = 'Universities'
+
+    def __str__(self):
+        return self.name
+
+
 class UserManager(BaseUserManager):
     """Manager for users."""
 
@@ -80,6 +105,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Student(User):
     """Student user — inherits all User fields directly."""
 
+    university = models.ForeignKey(
+        University, on_delete=models.CASCADE,
+        related_name='students', null=True, blank=True,
+    )
     full_name = models.CharField(max_length=255)
     wilaya = models.CharField(max_length=100)
     github_link = models.URLField(max_length=255, blank=True)
@@ -124,6 +153,10 @@ class Company(User):
 class Admin(User):
     """Admin user — inherits all User fields directly."""
 
+    university = models.ForeignKey(
+        University, on_delete=models.CASCADE,
+        related_name='admins', null=True, blank=True,
+    )
     department = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
 
@@ -137,3 +170,39 @@ class Admin(User):
 
     def __str__(self):
         return f'{self.title} - {self.email}'
+
+
+class Internship(models.Model):
+    """Represents an internship linking a Student to a Company."""
+
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Pending'
+        ACCEPTED_BY_COMPANY = 'accepted_by_company', 'Accepted by Company'
+        VALIDATED = 'validated', 'Validated'
+        REJECTED = 'rejected', 'Rejected'
+
+    student = models.ForeignKey(
+        Student, on_delete=models.CASCADE, related_name='internships',
+    )
+    company = models.ForeignKey(
+        Company, on_delete=models.CASCADE, related_name='internships',
+    )
+    subject = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    status = models.CharField(
+        max_length=30,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Internship'
+        verbose_name_plural = 'Internships'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.student.full_name} @ {self.company.name} — {self.status}'
