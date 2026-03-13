@@ -31,6 +31,12 @@ def university_logo_file_path(instance, filename):
     return os.path.join('uploads', 'university', filename)
 
 
+def agreement_file_path(instance, filename):
+    """Generate file path for internship agreement PDF."""
+    filename = f'{uuid.uuid4()}.pdf'
+    return os.path.join('uploads', 'agreements', filename)
+
+
 class University(models.Model):
     """Represents a university institution."""
     name = models.CharField(max_length=255)
@@ -206,6 +212,22 @@ class Internship(models.Model):
 
     def __str__(self):
         return f'{self.student.full_name} @ {self.company.name} — {self.status}'
+
+
+class InternshipAgreement(models.Model):
+    """Stores the generated Convention de Stage PDF for an internship."""
+    internship = models.OneToOneField(
+        Internship, on_delete=models.CASCADE, related_name='agreement',
+    )
+    pdf_file = models.FileField(upload_to=agreement_file_path)
+    generated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Internship Agreement'
+        verbose_name_plural = 'Internship Agreements'
+
+    def __str__(self):
+        return f'Agreement for {self.internship}'
 
 
 class Notification(models.Model):
