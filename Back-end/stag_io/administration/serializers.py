@@ -1,7 +1,17 @@
 """Serializers for the administration API."""
 from rest_framework import serializers
 
-from core.models import Internship, Notification
+from core.models import Internship, InternshipAgreement, Notification
+
+
+class InternshipAgreementSerializer(serializers.ModelSerializer):
+    """Read-only serializer for internship agreement metadata."""
+    pdf_url = serializers.FileField(source='pdf_file', read_only=True)
+
+    class Meta:
+        model = InternshipAgreement
+        fields = ['id', 'pdf_url', 'generated_at']
+        read_only_fields = fields
 
 
 class AdminInternshipSerializer(serializers.ModelSerializer):
@@ -38,6 +48,14 @@ class AdminInternshipSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class AdminInternshipDetailSerializer(AdminInternshipSerializer):
+    """Detailed internship serializer with agreement metadata."""
+    agreement = InternshipAgreementSerializer(read_only=True)
+
+    class Meta(AdminInternshipSerializer.Meta):
+        fields = AdminInternshipSerializer.Meta.fields + ['agreement']
 
 
 class NotificationSerializer(serializers.ModelSerializer):

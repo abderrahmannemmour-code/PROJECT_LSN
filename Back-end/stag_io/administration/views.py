@@ -1,4 +1,5 @@
 """Views for the administration API."""
+from django.http import FileResponse
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -7,10 +8,12 @@ from drf_spectacular.utils import extend_schema
 
 from core.models import Admin, Internship, Notification
 from administration.serializers import (
+    AdminInternshipDetailSerializer,
     AdminInternshipSerializer,
     NotificationSerializer,
 )
 from administration.permissions import IsAdminUser, IsAdminOfSameUniversity
+from administration.services import generate_internship_agreement
 
 
 # ── Notification views ──────────────────────────────────────────────
@@ -89,12 +92,53 @@ class AllInternshipListView(generics.ListAPIView):
 @extend_schema(tags=['Administration'])
 class InternshipDetailView(generics.RetrieveAPIView):
     """Retrieve a single internship detail."""
-    serializer_class = AdminInternshipSerializer
+    serializer_class = AdminInternshipDetailSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser, IsAdminOfSameUniversity]
 
     def get_queryset(self):
-        return Internship.objects.select_related('student', 'company')
+        return Internship.objects.select_related(
+            'student', 'student__university', 'company', 'agreement',
+        )
+
+
+@extend_schema(tags=['Administration'])
+class DownloadInternshipAgreementView(APIView):
+    """Download the generated internship agreement PDF."""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser, IsAdminOfSameUniversity]
+
+    def get(self, request, pk):
+        try:
+            internship = Internship.objects.select_related(
+                'student', 'student__university', 'company', 'agreement',
+            ).get(pk=pk)
+        except Internship.DoesNotExist:
+            return Response(
+                {'detail': 'Internship not found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        admin = Admin.objects.get(pk=request.user.pk)
+        if internship.student.university != admin.university:
+            return Response(
+                {'detail': 'Not allowed.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if not hasattr(internship, 'agreement') or not internship.agreement.pdf_file:
+            return Response(
+                {'detail': 'Agreement not found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        internship.agreement.pdf_file.open('rb')
+        return FileResponse(
+            internship.agreement.pdf_file,
+            as_attachment=True,
+            filename=f'internship_agreement_{internship.id}.pdf',
+            content_type='application/pdf',
+        )
 
 
 @extend_schema(tags=['Administration'])
@@ -130,6 +174,16 @@ class ValidateInternshipView(APIView):
 
         internship.status = Internship.Status.VALIDATED
         internship.save()
+
+        try:
+            generate_internship_agreement(internship, admin=admin)
+        except ValueError as error:
+            internship.status = Internship.Status.ACCEPTED_BY_COMPANY
+            internship.save(update_fields=['status'])
+            return Response(
+                {'detail': str(error)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Mark related notifications as read
         Notification.objects.filter(

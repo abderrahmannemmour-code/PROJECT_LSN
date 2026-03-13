@@ -34,6 +34,11 @@ urlpatterns = [
         name='internship-detail',
     ),
     path(
+        'internships/<int:pk>/agreement/',
+        views.DownloadInternshipAgreementView.as_view(),
+        name='internship-agreement-download',
+    ),
+    path(
         'internships/<int:pk>/validate/',
         views.ValidateInternshipView.as_view(),
         name='internship-validate',
