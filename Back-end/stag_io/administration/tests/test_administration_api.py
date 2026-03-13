@@ -1,12 +1,15 @@
 """Tests for the administration API."""
 from datetime import date
+from unittest.mock import patch
 
+from django.core.files.base import ContentFile
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from core.models import (
+    InternshipAgreement,
     University,
     Student,
     Company,
@@ -31,6 +34,10 @@ def internship_validate_url(internship_id):
 
 def internship_reject_url(internship_id):
     return reverse('administration:internship-reject', args=[internship_id])
+
+
+def internship_agreement_download_url(internship_id):
+    return reverse('administration:internship-agreement-download', args=[internship_id])
 
 
 def notification_read_url(notification_id):
@@ -116,6 +123,16 @@ def create_notification(recipient, internship, **params):
     )
 
 
+def create_internship_agreement(internship, file_name='agreement.pdf'):
+    agreement = InternshipAgreement.objects.create(internship=internship)
+    agreement.pdf_file.save(
+        file_name,
+        ContentFile(b'%PDF-1.4 test agreement'),
+        save=True,
+    )
+    return agreement
+
+
 class PublicAdministrationApiTests(TestCase):
     """Test unauthenticated access is denied."""
 
@@ -187,7 +204,8 @@ class AdminValidateRejectTests(TestCase):
         self.company = create_company()
         self.client.force_authenticate(user=self.admin_user)
 
-    def test_validate_internship(self):
+    @patch('administration.views.generate_internship_agreement')
+    def test_validate_internship(self, mock_generate_agreement):
         internship = create_internship(self.student, self.company)
 
         res = self.client.patch(internship_validate_url(internship.id))
@@ -195,6 +213,34 @@ class AdminValidateRejectTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         internship.refresh_from_db()
         self.assertEqual(internship.status, Internship.Status.VALIDATED)
+        mock_generate_agreement.assert_called_once_with(
+            internship, admin=self.admin_user,
+        )
+
+    @patch(
+        'administration.views.generate_internship_agreement',
+        side_effect=ValueError('No administrator found for this university.'),
+    )
+    def test_validate_internship_rolls_back_when_agreement_generation_fails(
+        self, mock_generate_agreement,
+    ):
+        internship = create_internship(self.student, self.company)
+
+        res = self.client.patch(internship_validate_url(internship.id))
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            res.data['detail'],
+            'No administrator found for this university.',
+        )
+        internship.refresh_from_db()
+        self.assertEqual(
+            internship.status,
+            Internship.Status.ACCEPTED_BY_COMPANY,
+        )
+        mock_generate_agreement.assert_called_once_with(
+            internship, admin=self.admin_user,
+        )
 
     def test_reject_internship(self):
         internship = create_internship(self.student, self.company)
@@ -349,7 +395,8 @@ class AdminNotificationTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 0)
 
-    def test_validate_marks_notification_as_read(self):
+    @patch('administration.views.generate_internship_agreement')
+    def test_validate_marks_notification_as_read(self, mock_generate_agreement):
         """Validating an internship auto-marks related notifications as read."""
         internship = create_internship(self.student, self.company)
         notification = create_notification(self.admin_user, internship)
@@ -358,6 +405,9 @@ class AdminNotificationTests(TestCase):
 
         notification.refresh_from_db()
         self.assertTrue(notification.is_read)
+        mock_generate_agreement.assert_called_once_with(
+            internship, admin=self.admin_user,
+        )
 
     def test_reject_marks_notification_as_read(self):
         """Rejecting an internship auto-marks related notifications as read."""
@@ -368,4 +418,59 @@ class AdminNotificationTests(TestCase):
 
         notification.refresh_from_db()
         self.assertTrue(notification.is_read)
+
+
+class AdminInternshipAgreementTests(TestCase):
+    """Test internship agreement detail and download endpoints."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.university = create_university()
+        self.admin_user = create_admin_user(self.university)
+        self.student = create_student(self.university)
+        self.company = create_company()
+        self.internship = create_internship(self.student, self.company)
+        self.client.force_authenticate(user=self.admin_user)
+
+    def test_internship_detail_includes_agreement_metadata(self):
+        agreement = create_internship_agreement(self.internship)
+
+        res = self.client.get(internship_detail_url(self.internship.id))
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('agreement', res.data)
+        self.assertEqual(res.data['agreement']['id'], agreement.id)
+        self.assertIn('/uploads/agreements/', res.data['agreement']['pdf_url'])
+        self.assertTrue(res.data['agreement']['pdf_url'].endswith('.pdf'))
+        self.assertIsNotNone(res.data['agreement']['generated_at'])
+
+    def test_download_internship_agreement(self):
+        create_internship_agreement(self.internship)
+
+        res = self.client.get(internship_agreement_download_url(self.internship.id))
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res['Content-Type'], 'application/pdf')
+        self.assertIn(
+            'attachment; filename="internship_agreement_',
+            res['Content-Disposition'],
+        )
+
+    def test_download_internship_agreement_not_found(self):
+        res = self.client.get(internship_agreement_download_url(self.internship.id))
+
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_download_internship_agreement_forbidden_for_other_university(self):
+        create_internship_agreement(self.internship)
+        other_university = create_university(name='Other University', code='OTH')
+        other_admin = create_admin_user(
+            other_university,
+            email='otheradmin@example.com',
+        )
+        self.client.force_authenticate(user=other_admin)
+
+        res = self.client.get(internship_agreement_download_url(self.internship.id))
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
