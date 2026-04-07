@@ -1,7 +1,39 @@
 # Stag.io
 
-Internship management platform connecting **Students**, **Companies**, and **University Administration**.  
+Stag.io is an internship management platform that connects three main actors:
+- **Students** who apply for and follow internship progress
+- **Companies** that review and accept internship requests
+- **University Administration** that validates, tracks, and supervises internships
+
 Built for the L3TI Workshop 2025-2026.
+
+---
+
+## Repository Introduction
+
+This repository is organized by application layer to keep responsibilities clear between API/business logic and client interface.
+
+### Back-end Folder (`Back-end/`)
+
+The back-end contains the Django REST API and business logic of the platform:
+- Authentication and role-based access (student/company/admin)
+- Internship workflow management (pending, accepted, validated, rejected)
+- Administration features (notifications, statistics, agreement handling)
+- PostgreSQL integration, Docker setup, and automated migrations
+
+In short, the `Back-end/` folder is the **core engine** of Stag.io.
+
+### Front-end Folder (`Front-end/`)
+
+The front-end is intended to contain the user interface of the platform:
+- Student dashboard and profile pages
+- Company dashboard and internship actions
+- Administration dashboard (monitoring, analytics, notifications)
+- API integration with the back-end services
+
+In short, the `Front-end/` folder is the **presentation layer** of Stag.io.
+
+Note: At the moment, this repository currently includes the back-end folder. Add the front-end folder in this same repository (or reference its repository) when available.
 
 ---
 
