@@ -48,4 +48,50 @@ urlpatterns = [
         views.RejectInternshipView.as_view(),
         name='internship-reject',
     ),
+    # Statistics
+    path(
+        'statistics/',
+        views.StatisticsSummaryView.as_view(),
+        name='statistics-summary',
+    ),
+    path(
+        'statistics/companies/',
+        views.StatisticsCompaniesView.as_view(),
+        name='statistics-companies',
+    ),
+    path(
+        'statistics/wilayas/',
+        views.StatisticsWilayasView.as_view(),
+        name='statistics-wilayas',
+    ),
+    path(
+        'statistics/trends/',
+        views.StatisticsTrendsView.as_view(),
+        name='statistics-trends',
+    ),
+    path(
+        'statistics/agreements/',
+        views.StatisticsAgreementsView.as_view(),
+        name='statistics-agreements',
+    ),
+    path(
+        'statistics/statuses/',
+        views.StatisticsStatusesView.as_view(),
+        name='statistics-statuses',
+    ),
+    path(
+        'statistics/students/',
+        views.StatisticsStudentsView.as_view(),
+        name='statistics-students',
+    ),
+    path(
+        'statistics/companies/<int:company_id>/',
+        views.StatisticsCompanyDetailView.as_view(),
+        name='statistics-company-detail',
+    ),
+    path(
+        'statistics/at-risk/',
+        views.StatisticsAtRiskView.as_view(),
+        name='statistics-at-risk',
+    ),
 ]

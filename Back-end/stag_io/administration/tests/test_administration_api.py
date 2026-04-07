@@ -5,6 +5,7 @@ from unittest.mock import patch
 from django.core.files.base import ContentFile
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -22,6 +23,14 @@ from core.models import (
 INTERNSHIP_LIST_URL = reverse('administration:internship-list')
 NOTIFICATION_LIST_URL = reverse('administration:notification-list')
 NOTIFICATION_UNREAD_URL = reverse('administration:notification-unread')
+STATISTICS_SUMMARY_URL = reverse('administration:statistics-summary')
+STATISTICS_COMPANIES_URL = reverse('administration:statistics-companies')
+STATISTICS_WILAYAS_URL = reverse('administration:statistics-wilayas')
+STATISTICS_TRENDS_URL = reverse('administration:statistics-trends')
+STATISTICS_AGREEMENTS_URL = reverse('administration:statistics-agreements')
+STATISTICS_STATUSES_URL = reverse('administration:statistics-statuses')
+STATISTICS_STUDENTS_URL = reverse('administration:statistics-students')
+STATISTICS_AT_RISK_URL = reverse('administration:statistics-at-risk')
 
 
 def internship_detail_url(internship_id):
@@ -42,6 +51,10 @@ def internship_agreement_download_url(internship_id):
 
 def notification_read_url(notification_id):
     return reverse('administration:notification-read', args=[notification_id])
+
+
+def statistics_company_detail_url(company_id):
+    return reverse('administration:statistics-company-detail', args=[company_id])
 
 
 def create_university(**params):
@@ -473,4 +486,299 @@ class AdminInternshipAgreementTests(TestCase):
         res = self.client.get(internship_agreement_download_url(self.internship.id))
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class PublicStatisticsApiTests(TestCase):
+    """Test unauthenticated access to statistics endpoints is denied."""
+
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_statistics_summary_requires_auth(self):
+        res = self.client.get(STATISTICS_SUMMARY_URL)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_statistics_companies_requires_auth(self):
+        res = self.client.get(STATISTICS_COMPANIES_URL)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_statistics_wilayas_requires_auth(self):
+        res = self.client.get(STATISTICS_WILAYAS_URL)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_statistics_trends_requires_auth(self):
+        res = self.client.get(STATISTICS_TRENDS_URL)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_statistics_agreements_requires_auth(self):
+        res = self.client.get(STATISTICS_AGREEMENTS_URL)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_statistics_statuses_requires_auth(self):
+        res = self.client.get(STATISTICS_STATUSES_URL)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_statistics_students_requires_auth(self):
+        res = self.client.get(STATISTICS_STUDENTS_URL)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_statistics_at_risk_requires_auth(self):
+        res = self.client.get(STATISTICS_AT_RISK_URL)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class NonAdminStatisticsAccessTests(TestCase):
+    """Test that non-admin users cannot access statistics endpoints."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.university = create_university()
+        self.student = create_student(self.university)
+        self.client.force_authenticate(user=self.student)
+
+    def test_student_cannot_access_statistics_summary(self):
+        res = self.client.get(STATISTICS_SUMMARY_URL)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class AdminStatisticsTests(TestCase):
+    """Test statistics endpoints for administration dashboard."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.university = create_university()
+        self.admin_user = create_admin_user(self.university)
+        self.client.force_authenticate(user=self.admin_user)
+
+        self.student_1 = create_student(
+            self.university,
+            email='student1@example.com',
+            full_name='Student One',
+            wilaya='Algiers',
+        )
+        self.student_2 = create_student(
+            self.university,
+            email='student2@example.com',
+            full_name='Student Two',
+            wilaya='Oran',
+        )
+        self.student_3 = create_student(
+            self.university,
+            email='student3@example.com',
+            full_name='Student Three',
+            wilaya='Constantine',
+        )
+
+        self.company_1 = create_company(
+            email='company1@example.com',
+            name='Company One',
+            wilaya='Blida',
+        )
+        self.company_2 = create_company(
+            email='company2@example.com',
+            name='Company Two',
+            wilaya='Setif',
+        )
+
+        today = timezone.now().date()
+        self.internship_accepted = create_internship(
+            self.student_1,
+            self.company_1,
+            status=Internship.Status.ACCEPTED_BY_COMPANY,
+            end_date=today + timezone.timedelta(days=50),
+        )
+        self.internship_validated = create_internship(
+            self.student_2,
+            self.company_1,
+            status=Internship.Status.VALIDATED,
+            end_date=today + timezone.timedelta(days=60),
+        )
+        self.internship_pending = create_internship(
+            self.student_1,
+            self.company_2,
+            status=Internship.Status.PENDING,
+            end_date=today + timezone.timedelta(days=5),
+        )
+        self.internship_rejected = create_internship(
+            self.student_2,
+            self.company_2,
+            status=Internship.Status.REJECTED,
+            end_date=today + timezone.timedelta(days=25),
+        )
+
+        create_internship_agreement(self.internship_validated)
+
+        # Force internships into two different month buckets for trend checks.
+        old_dt = timezone.now() - timezone.timedelta(days=40)
+        recent_dt = timezone.now() - timezone.timedelta(days=3)
+        Internship.objects.filter(pk=self.internship_accepted.pk).update(
+            updated_at=old_dt,
+        )
+        Internship.objects.filter(pk=self.internship_validated.pk).update(
+            updated_at=recent_dt,
+        )
+        Internship.objects.filter(pk=self.internship_pending.pk).update(
+            updated_at=recent_dt,
+        )
+        Internship.objects.filter(pk=self.internship_rejected.pk).update(
+            updated_at=old_dt,
+        )
+
+        # Foreign university data must not leak into admin statistics.
+        other_uni = create_university(name='Other University', code='OTH')
+        other_student = create_student(
+            other_uni,
+            email='otherstudent@example.com',
+            full_name='Other Student',
+        )
+        other_company = create_company(
+            email='othercompany@example.com',
+            name='Other Company',
+        )
+        create_internship(
+            other_student,
+            other_company,
+            status=Internship.Status.VALIDATED,
+        )
+
+    def test_statistics_summary(self):
+        res = self.client.get(STATISTICS_SUMMARY_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['students']['total'], 3)
+        self.assertEqual(res.data['students']['placed'], 2)
+        self.assertEqual(res.data['students']['unplaced'], 1)
+        self.assertEqual(res.data['students']['placement_rate'], 66.67)
+        self.assertEqual(res.data['internships']['pending'], 1)
+        self.assertEqual(res.data['internships']['accepted_by_company'], 1)
+        self.assertEqual(res.data['internships']['validated'], 1)
+        self.assertEqual(res.data['internships']['rejected'], 1)
+        self.assertEqual(res.data['internships']['total'], 4)
+
+    def test_statistics_companies(self):
+        res = self.client.get(STATISTICS_COMPANIES_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data['companies']), 2)
+
+        first = res.data['companies'][0]
+        second = res.data['companies'][1]
+
+        self.assertEqual(first['company_name'], 'Company One')
+        self.assertEqual(first['total_internships'], 2)
+        self.assertEqual(first['accepted_by_company'], 1)
+        self.assertEqual(first['validated'], 1)
+
+        self.assertEqual(second['company_name'], 'Company Two')
+        self.assertEqual(second['total_internships'], 2)
+        self.assertEqual(second['pending'], 1)
+        self.assertEqual(second['rejected'], 1)
+
+    def test_statistics_wilayas_student_source(self):
+        res = self.client.get(STATISTICS_WILAYAS_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['source'], 'student')
+        by_name = {
+            row['wilaya']: row['internships_count']
+            for row in res.data['distribution']
+        }
+        self.assertEqual(by_name['Algiers'], 2)
+        self.assertEqual(by_name['Oran'], 2)
+
+    def test_statistics_wilayas_company_source(self):
+        res = self.client.get(STATISTICS_WILAYAS_URL, {'source': 'company'})
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['source'], 'company')
+        by_name = {
+            row['wilaya']: row['internships_count']
+            for row in res.data['distribution']
+        }
+        self.assertEqual(by_name['Blida'], 2)
+        self.assertEqual(by_name['Setif'], 2)
+
+    def test_statistics_trends_monthly(self):
+        res = self.client.get(STATISTICS_TRENDS_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['period'], 'monthly')
+        self.assertGreaterEqual(len(res.data['trends']), 2)
+
+        total_placements = sum(item['placements'] for item in res.data['trends'])
+        total_validations = sum(item['validations'] for item in res.data['trends'])
+        self.assertEqual(total_placements, 2)
+        self.assertEqual(total_validations, 1)
+
+    def test_statistics_trends_weekly(self):
+        res = self.client.get(STATISTICS_TRENDS_URL, {'period': 'weekly'})
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['period'], 'weekly')
+        self.assertGreaterEqual(len(res.data['trends']), 2)
+
+    def test_statistics_agreements(self):
+        res = self.client.get(STATISTICS_AGREEMENTS_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['total_internships'], 4)
+        self.assertEqual(res.data['agreements_generated'], 1)
+        self.assertEqual(res.data['agreements_missing'], 3)
+
+    def test_statistics_statuses(self):
+        res = self.client.get(STATISTICS_STATUSES_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['pending'], 1)
+        self.assertEqual(res.data['accepted_by_company'], 1)
+        self.assertEqual(res.data['validated'], 1)
+        self.assertEqual(res.data['rejected'], 1)
+        self.assertEqual(res.data['total'], 4)
+
+    def test_statistics_students(self):
+        res = self.client.get(STATISTICS_STUDENTS_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['total_students'], 3)
+        self.assertEqual(res.data['students_with_internships'], 2)
+        self.assertEqual(res.data['students_without_internships'], 1)
+
+    def test_statistics_company_detail(self):
+        res = self.client.get(
+            statistics_company_detail_url(self.company_1.id),
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['company_name'], 'Company One')
+        self.assertEqual(res.data['total_internships'], 2)
+        self.assertEqual(res.data['accepted_by_company'], 1)
+        self.assertEqual(res.data['validated'], 1)
+        self.assertEqual(res.data['company_placements'], 2)
+        self.assertEqual(res.data['university_placements'], 2)
+        self.assertEqual(res.data['placement_share_percent'], 100.0)
+
+    def test_statistics_company_detail_not_found(self):
+        other_company = create_company(
+            email='nointernships@example.com',
+            name='No Internships Company',
+        )
+        res = self.client.get(
+            statistics_company_detail_url(other_company.id),
+        )
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_statistics_at_risk(self):
+        res = self.client.get(STATISTICS_AT_RISK_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['window_days'], 14)
+        self.assertEqual(res.data['count'], 1)
+        self.assertEqual(res.data['internships'][0]['internship_id'], self.internship_pending.id)
+
+    def test_statistics_at_risk_custom_window(self):
+        res = self.client.get(STATISTICS_AT_RISK_URL, {'days': 3})
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['window_days'], 3)
+        self.assertEqual(res.data['count'], 0)
 
