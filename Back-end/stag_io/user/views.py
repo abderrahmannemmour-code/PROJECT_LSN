@@ -28,6 +28,28 @@ class IsAdmin(permissions.BasePermission):
         )
 
 
+class IsStudent(permissions.BasePermission):
+    """Allow access only to student users."""
+
+    def has_permission(self, request, view):
+        return (
+            request.user
+            and request.user.is_authenticated
+            and getattr(request.user, 'role', '') == 'student'
+        )
+
+
+class IsCompany(permissions.BasePermission):
+    """Allow access only to company users."""
+
+    def has_permission(self, request, view):
+        return (
+            request.user
+            and request.user.is_authenticated
+            and getattr(request.user, 'role', '') == 'company'
+        )
+
+
 @extend_schema(tags=['Student'])
 class StudentRegisterView(generics.CreateAPIView):
     """Register a new student."""
@@ -67,7 +89,7 @@ class StudentUpdateView(generics.RetrieveUpdateAPIView):
     """View and update student profile (full_name, wilaya, links)."""
     serializer_class = StudentUpdateSerializer
     authentication_classes = [JWTAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsStudent]
     http_method_names = ['get', 'patch']
 
     def get_object(self):
@@ -80,7 +102,7 @@ class CompanyUpdateView(generics.RetrieveUpdateAPIView):
     """View and update company profile (name, description, wilaya, website)."""
     serializer_class = CompanyUpdateSerializer
     authentication_classes = [JWTAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsCompany]
     http_method_names = ['get', 'patch']
 
     def get_object(self):
@@ -93,7 +115,7 @@ class CompanyLogoUploadView(generics.UpdateAPIView):
     """Upload a logo image for the authenticated company user."""
     serializer_class = LogoImageSerializer
     authentication_classes = [JWTAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsCompany]
     parser_classes = [MultiPartParser, FormParser]
     http_method_names = ['patch']
 
@@ -108,7 +130,7 @@ class StudentProfileImageUploadView(generics.UpdateAPIView):
     """Upload a profile image for the authenticated student user."""
     serializer_class = ProfileImageSerializer
     authentication_classes = [JWTAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsStudent]
     parser_classes = [MultiPartParser, FormParser]
     http_method_names = ['patch']
 
