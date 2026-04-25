@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'core',
     'user',
     'administration',
+    'student',
     'rest_framework',
     'drf_spectacular',
 ]
@@ -81,11 +82,12 @@ WSGI_APPLICATION = 'stag_io.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE':'django.db.backends.postgresql',
-        'HOST': os.environ.get('DB_HOST'),
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASS'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'HOST': 'localhost',
+        'NAME': 'devdb',
+        'USER': 'devuser',
+        'PASSWORD': 'changeme',
+        'PORT': '5433',
     }
 }
 
@@ -160,6 +162,7 @@ SPECTACULAR_SETTINGS = {
         {'name': 'Company', 'description': 'Company registration & logo'},
         {'name': 'Account', 'description': 'Manage authenticated user'},
         {'name': 'Admin', 'description': 'Admin-only operations'},
+        {'name': 'Skills', 'description': 'Skills list & student skill management'},
     ],
 }
 
