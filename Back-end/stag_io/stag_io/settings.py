@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'user',
     'administration',
     'student',
+    'company',
     'rest_framework',
     'drf_spectacular',
 ]
@@ -163,6 +164,7 @@ SPECTACULAR_SETTINGS = {
         {'name': 'Account', 'description': 'Manage authenticated user'},
         {'name': 'Admin', 'description': 'Admin-only operations'},
         {'name': 'Skills', 'description': 'Skills list & student skill management'},
+        {'name': 'Company Offers', 'description': 'Internship offer management for companies'},
     ],
 }
 

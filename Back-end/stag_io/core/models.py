@@ -228,6 +228,86 @@ class InternshipAgreement(models.Model):
 
     def __str__(self):
         return f'Agreement for {self.internship}'
+    
+
+
+class InternshipOffer(models.Model):
+    """
+    An internship offer posted by a Company.
+    Students will browse and apply to these offers.
+    """
+
+    class Type(models.TextChoices):
+        PAID = 'paid', 'Paid'
+        UNPAID = 'unpaid', 'Unpaid'
+
+    class Status(models.TextChoices):
+        OPEN = 'open', 'Open'
+        CLOSED = 'closed', 'Closed'
+
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name='offers',
+    )
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    location = models.CharField(max_length=255)
+    type = models.CharField(
+        max_length=10,
+        choices=Type.choices,
+        default=Type.UNPAID,
+    )
+    salary_per_week = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+    start_date = models.DateField()
+    end_date = models.DateField()
+    photo = models.ImageField(
+        null=True,
+        blank=True,
+        upload_to='uploads/offer_photos/',
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=Status.choices,
+        default=Status.OPEN,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Internship Offer'
+        verbose_name_plural = 'Internship Offers'
+
+    def __str__(self):
+        return f'{self.title} — {self.company.name}'
+
+    @property
+    def duration_display(self):
+        """
+        Human-readable duration with sensible rounding.
+        - Within 5 days of a month → 'X months'
+        - Within 3 days of a week  → 'X weeks'
+        - Otherwise                → 'X days'
+        """
+        delta = (self.end_date - self.start_date).days
+        if delta <= 0:
+            return 'Invalid dates'
+
+        months = round(delta / 30)
+        if months >= 1 and abs(delta - months * 30) <= 5:
+            return f'{months} month{"s" if months > 1 else ""}'
+
+        weeks = round(delta / 7)
+        if weeks >= 1 and abs(delta - weeks * 7) <= 3:
+            return f'{weeks} week{"s" if weeks > 1 else ""}'
+
+        return f'{delta} day{"s" if delta > 1 else ""}'
 
 
 class Notification(models.Model):
