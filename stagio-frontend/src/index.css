@@ -1,0 +1,18 @@
+/* src/index.css */
+/* Simple reset — just removes default browser margins/padding */
+/* All real styling is done in theme.js with styled-components */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

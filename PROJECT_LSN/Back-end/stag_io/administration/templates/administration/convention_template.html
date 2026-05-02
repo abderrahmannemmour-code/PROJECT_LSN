@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Convention de Stage – {{ internship.student.university.name }}</title>
+  <style>
+
+    /* ── Reset ───────────────────────────────────────────────── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Page setup ──────────────────────────────────────────── */
+    @page {
+      size: A4;
+      margin: 22mm 20mm 20mm 20mm;
+      @top-center   { content: element(running-header); }
+      @bottom-center{ content: element(running-footer); }
+    }
+    @page cover {
+      margin: 20mm 20mm 20mm 20mm;
+      @top-center   { content: none; }
+      @bottom-center{ content: none; }
+    }
+
+    /* ── Running header ──────────────────────────────────────── */
+    #running-header {
+      position: running(running-header);
+      width: 100%;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      font-family: "Arial", sans-serif;
+      font-size: 7.5pt;
+      color: #666;
+    }
+
+    /* ── Running footer ──────────────────────────────────────── */
+    #running-footer {
+      position: running(running-footer);
+      width: 100%;
+      padding-top: 4px;
+      border-top: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+      font-family: "Arial", sans-serif;
+      font-size: 7pt;
+      color: #888;
+    }
+    .page-number::after { content: counter(page); }
+    .page-total::after  { content: counter(pages); }
+
+    /* ── Base typography ─────────────────────────────────────── */
+    body {
+      font-family: "Times New Roman", Times, serif;
+      font-size: 10pt;
+      color: #111;
+      line-height: 1.6;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       PAGE 1 — COVER
+    ════════════════════════════════════════════════════════════ */
+    .cover { page: cover; }
+
+    .inst-header {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .inst-header .republic {
+      font-size: 9pt;
+      font-weight: bold;
+      line-height: 1.5;
+      margin-bottom: 2px;
+    }
+    .inst-header .ministry {
+      font-size: 8pt;
+      color: #444;
+      margin-bottom: 6px;
+    }
+    .inst-header .logo img {
+      height: 52px;
+      margin-bottom: 4px;
+    }
+    .inst-header .inst-name {
+      font-size: 11pt;
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+    .inst-header .inst-dept {
+      font-size: 8.5pt;
+      color: #555;
+    }
+
+    .rule       { border: none; border-top: 1px solid #bbb; margin: 10px 0; }
+    .rule-thick { border: none; border-top: 2px solid #222; margin: 10px 0; }
+
+    .ref-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 8.5pt;
+      color: #555;
+      margin-bottom: 10px;
+    }
+
+    .doc-title {
+      text-align: center;
+      font-family: "Georgia", serif;
+      font-size: 24pt;
+      font-weight: bold;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin: 16px 0 4px;
+    }
+    .doc-subtitle {
+      text-align: center;
+      font-size: 12pt;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 18px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Parties table */
+    .parties-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+      font-size: 9.5pt;
+    }
+    .parties-table td {
+      vertical-align: top;
+      padding: 10px 12px;
+      border: 1px solid #bbb;
+    }
+    .parties-table td.connector {
+      text-align: center;
+      vertical-align: middle;
+      border: none;
+      padding: 0 8px;
+      font-weight: bold;
+      font-size: 10pt;
+      color: #444;
+      width: 40px;
+    }
+    .party-heading {
+      font-size: 9pt;
+      font-weight: bold;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+      margin-bottom: 8px;
+    }
+    .field {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 5px;
+      align-items: flex-end;
+      line-height: 1.3;
+    }
+    .field .lbl {
+      font-weight: bold;
+      white-space: nowrap;
+      min-width: 90px;
+      font-size: 8.5pt;
+      color: #333;
+    }
+    .field .val {
+      flex: 1;
+      border-bottom: 1px dotted #999;
+      min-height: 13px;
+      font-size: 9pt;
+      padding-bottom: 1px;
+    }
+
+    /* Section heading */
+    .section-head {
+      background: #1e1e1e;
+      color: #fff;
+      font-size: 9pt;
+      font-weight: bold;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 5px 10px;
+      margin-bottom: 10px;
+    }
+
+    /* Student data grid */
+    .student-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 20px;
+      margin-bottom: 10px;
+    }
+    .student-grid.full { grid-template-columns: 1fr; }
+    .sfield {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      font-size: 9pt;
+    }
+    .sfield .slbl {
+      font-weight: bold;
+      white-space: nowrap;
+      min-width: 120px;
+      color: #333;
+      font-size: 8.5pt;
+    }
+    .sfield .sval {
+      flex: 1;
+      border-bottom: 1px dotted #999;
+      min-height: 14px;
+      padding-bottom: 1px;
+    }
+
+    /* Duration strip */
+    .duration-strip {
+      display: flex;
+      border: 1px solid #bbb;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .dur-cell {
+      flex: 1;
+      padding: 7px 10px;
+      font-size: 9pt;
+      border-right: 1px solid #ddd;
+    }
+    .dur-cell:last-child { border-right: none; }
+    .dur-cell .dlbl {
+      font-size: 7.5pt;
+      font-weight: bold;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 3px;
+    }
+    .dur-cell .dval {
+      border-bottom: 1px dotted #999;
+      min-height: 14px;
+      font-size: 9pt;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       PAGE 2 — ARTICLES & SIGNATURES
+    ════════════════════════════════════════════════════════════ */
+    .articles-page { page-break-before: always; }
+
+    .agreed-header {
+      font-size: 10pt;
+      font-weight: bold;
+      border-left: 3px solid #1e1e1e;
+      padding-left: 8px;
+      margin-bottom: 14px;
+      color: #1e1e1e;
+    }
+
+    .article { margin-bottom: 11px; }
+    .article-title {
+      font-size: 10pt;
+      font-weight: bold;
+      margin-bottom: 3px;
+      color: #1e1e1e;
+    }
+    .article p {
+      text-align: justify;
+      margin-bottom: 3px;
+      font-size: 9.5pt;
+      line-height: 1.6;
+    }
+    .article ul {
+      margin: 3px 0 3px 18px;
+    }
+    .article ul li {
+      font-size: 9.5pt;
+      margin-bottom: 2px;
+      line-height: 1.5;
+    }
+
+    /* Signatures */
+    .sig-section { margin-top: 18px; page-break-inside: avoid; }
+    .sig-table { width: 100%; border-collapse: collapse; }
+    .sig-table td {
+      width: 33.33%;
+      border: 1px solid #bbb;
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: center;
+      font-size: 9pt;
+    }
+    .sig-role {
+      font-weight: bold;
+      font-size: 9.5pt;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 5px;
+      margin-bottom: 6px;
+    }
+    .sig-name  { color: #444; font-size: 8.5pt; margin-bottom: 2px; min-height: 12px; }
+    .sig-date  { font-size: 8.5pt; margin: 6px 0; color: #555; }
+    .sig-box   {
+      height: 52px;
+      border: 1px dashed #ccc;
+      border-radius: 2px;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ccc;
+      font-size: 7.5pt;
+    }
+
+    .student-ack {
+      margin-top: 12px;
+      border: 1px solid #bbb;
+      border-radius: 3px;
+      padding: 10px 14px;
+      font-size: 9pt;
+      line-height: 1.6;
+    }
+    .ack-sig-row {
+      display: flex;
+      gap: 30px;
+      margin-top: 10px;
+    }
+    .ack-sig-item { flex: 1; font-size: 8.5pt; color: #555; }
+    .ack-sig-line { border-bottom: 1px dotted #999; height: 18px; margin-top: 4px; }
+
+    .footnote {
+      margin-top: 14px;
+      font-size: 7.5pt;
+      color: #777;
+      border-top: 1px solid #ddd;
+      padding-top: 5px;
+      line-height: 1.5;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Running header (pages 2+) -->
+  <div id="running-header">
+    <span>{{ internship.student.university.name }}</span>
+    <span>Convention de Stage &mdash; Réf: {{ reference_number }}</span>
+    <span>A.Y. {{ academic_year }}</span>
+  </div>
+
+  <!-- Running footer (pages 2+) -->
+  <div id="running-footer">
+    <span>{{ internship.student.university.address }}, {{ internship.student.university.wilaya }}</span>
+    <span>Page <span class="page-number"></span> / <span class="page-total"></span></span>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       PAGE 1 — COVER
+  ══════════════════════════════════════════════════════════ -->
+  <div class="cover">
+
+    <div class="inst-header">
+      <p class="republic">
+        الجمهورية الجزائرية الديمقراطية الشعبية<br/>
+        République Algérienne Démocratique et Populaire
+      </p>
+      <p class="ministry">Ministère de l'Enseignement Supérieur et de la Recherche Scientifique</p>
+      {% if university_logo_base64 %}
+      <div class="logo"><img src="data:image/png;base64,{{ university_logo_base64 }}" alt="Logo"/></div>
+      {% endif %}
+      <p class="inst-name">{{ internship.student.university.name }}</p>
+      <p class="inst-dept">{{ admin.department }} &mdash; Service des Stages</p>
+    </div>
+
+    <hr class="rule-thick"/>
+
+    <div class="ref-row">
+      <span>Réf N° : <strong>{{ reference_number }}</strong></span>
+      <span>Academic Year : <strong>{{ academic_year }}</strong></span>
+    </div>
+
+    <p class="doc-title">Convention de Stage</p>
+    <p class="doc-subtitle">Internship Agreement</p>
+
+    <hr class="rule"/>
+
+    <!-- Parties -->
+    <table class="parties-table">
+      <tr>
+        <td>
+          <div class="party-heading">{{ internship.student.university.name }}</div>
+          <div class="field"><span class="lbl">Address :</span><span class="val">{{ internship.student.university.address }}, {{ internship.student.university.wilaya }}</span></div>
+          <div class="field"><span class="lbl">Represented by :</span><span class="val">{{ admin.title }}</span></div>
+          <div class="field"><span class="lbl">Department :</span><span class="val">{{ admin.department }}</span></div>
+          <div class="field"><span class="lbl">Email :</span><span class="val">{{ admin.email }}</span></div>
+        </td>
+        <td class="connector">BETWEEN<br/>&amp;<br/>ET</td>
+        <td>
+          <div class="party-heading">Host Organisation / Établissement d'accueil</div>
+          <div class="field"><span class="lbl">Name :</span><span class="val">{{ internship.company.name }}</span></div>
+          <div class="field"><span class="lbl">Wilaya :</span><span class="val">{{ internship.company.wilaya }}</span></div>
+          <div class="field"><span class="lbl">Website :</span><span class="val">{{ internship.company.website }}</span></div>
+          <div class="field"><span class="lbl">Email :</span><span class="val">{{ internship.company.email }}</span></div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Student info -->
+    <div class="section-head">Student Information / Données Relatives à l'Étudiant</div>
+
+    <div class="student-grid">
+      <div class="sfield"><span class="slbl">Full Name :</span><span class="sval">{{ internship.student.full_name }}</span></div>
+      <div class="sfield"><span class="slbl">Email :</span><span class="sval">{{ internship.student.email }}</span></div>
+      <div class="sfield"><span class="slbl">Wilaya :</span><span class="sval">{{ internship.student.wilaya }}</span></div>
+      <div class="sfield"><span class="slbl">University :</span><span class="sval">{{ internship.student.university.name }}</span></div>
+    </div>
+
+    <div class="student-grid full">
+      {% if internship.student.github_link %}
+      <div class="sfield"><span class="slbl">GitHub :</span><span class="sval">{{ internship.student.github_link }}</span></div>
+      {% endif %}
+      {% if internship.student.portfolio_link %}
+      <div class="sfield"><span class="slbl">Portfolio :</span><span class="sval">{{ internship.student.portfolio_link }}</span></div>
+      {% endif %}
+      <div class="sfield"><span class="slbl">Internship Subject :</span><span class="sval">{{ internship.subject }}</span></div>
+      <div class="sfield"><span class="slbl">Description :</span><span class="sval">{{ internship.description }}</span></div>
+    </div>
+
+    <div class="duration-strip">
+      <div class="dur-cell"><div class="dlbl">Duration</div><div class="dval">{{ duration }}</div></div>
+      <div class="dur-cell"><div class="dlbl">Start Date</div><div class="dval">{{ internship.start_date|date:"d M Y" }}</div></div>
+      <div class="dur-cell"><div class="dlbl">End Date</div><div class="dval">{{ internship.end_date|date:"d M Y" }}</div></div>
+    </div>
+
+  </div><!-- /cover -->
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       PAGE 2 — ARTICLES & SIGNATURES
+  ══════════════════════════════════════════════════════════ -->
+  <div class="articles-page">
+
+    <p class="agreed-header">IT HAS BEEN AGREED AS FOLLOWS &nbsp;/&nbsp; IL A ÉTÉ CONVENU CE QUI SUIT :</p>
+
+    <div class="article">
+      <p class="article-title">Article 1 &mdash; General Provisions</p>
+      <p>This agreement is governed by Article 06 of Executive Decree No. 13-306 of 31 August 2013 on the organisation of practical internships in a professional setting for students, and by the Order of 21 January 2015 on the nature and modalities of their evaluation and scheduling.</p>
+    </div>
+
+    <div class="article">
+      <p class="article-title">Article 2 &mdash; Purpose of the Agreement</p>
+      <p>This convention defines the organisational framework for the practical internship carried out by <strong>{{ internship.student.full_name }}</strong> at <strong>{{ internship.company.name }}</strong>, formalising the rights, duties, and responsibilities of all parties.</p>
+    </div>
+
+    <div class="article">
+      <p class="article-title">Article 3 &mdash; Objectives of the Internship</p>
+      <p>The internship enables the student to apply theoretical and methodological knowledge in a real professional environment, develop professional competencies, and prepare for working life. The internship subject is: <strong>{{ internship.subject }}</strong>.</p>
+    </div>
+
+    <div class="article">
+      <p class="article-title">Article 4 &mdash; Internship Theme and Work Organisation</p>
+      <p>The theme, work plan, and assigned objectives are defined in consultation between the university and the host organisation, in line with the student's study programme and the host institution's operational needs. The student shall produce a final internship report upon completion.</p>
+    </div>
+
+    <div class="article">
+      <p class="article-title">Article 5 &mdash; Supervision</p>
+      <p>Each internship benefits from dual supervision:</p>
+      <ul>
+        <li>An <strong>Academic Supervisor</strong> designated by {{ internship.student.university.name }}, responsible for pedagogical follow-up and evaluation.</li>
+        <li>A <strong>Host Supervisor</strong> designated by {{ internship.company.name }}, responsible for daily on-site supervision.</li>
+      </ul>
+      <p>The student is placed under the hierarchical authority of the host supervisor and must comply with the host institution's internal regulations.</p>
+    </div>
+
+    <div class="article">
+      <p class="article-title">Article 6 &mdash; Practical Modalities</p>
+      <ul>
+        <li>Duration: <strong>{{ duration }}</strong> — from <strong>{{ internship.start_date|date:"d M Y" }}</strong> to <strong>{{ internship.end_date|date:"d M Y" }}</strong>.</li>
+        <li>The internship is carried out during academic year <strong>{{ academic_year }}</strong>.</li>
+      </ul>
+    </div>
+
+    <div class="article">
+      <p class="article-title">Article 7 &mdash; Student Status and Social Protection</p>
+      <p>The student retains their registered student status throughout the internship. Social security coverage is provided by {{ internship.student.university.name }}. In the event of a work-related accident, the host institution must file the workplace accident declaration with the relevant social security body and send a copy to {{ internship.student.university.name }} without delay.</p>
+    </div>
+
+    <div class="article">
+      <p class="article-title">Article 8 &mdash; Conduct, Discipline and Absence</p>
+      <p>The student is subject to the host institution's internal regulations, including discipline, working hours, safety rules, and professional confidentiality. Any absence, even for medical reasons, must be justified within <strong>72 hours</strong>. In the event of serious misconduct, the host institution may terminate the internship after informing the academic supervisor.</p>
+    </div>
+
+    <div class="article">
+      <p class="article-title">Article 9 &mdash; Confidentiality and Intellectual Property</p>
+      <p>Work results are the joint property of {{ internship.student.university.name }} and {{ internship.company.name }}. The internship report must be submitted to the academic supervisor after review by the host supervisor. The report may remain confidential but will be accessible to teaching staff for evaluation. In case of publication, both institutions and supervisors must be credited.</p>
+    </div>
+
+    <div class="article">
+      <p class="article-title">Article 10 &mdash; Remuneration and Benefits</p>
+      <p>Unless agreed otherwise in writing, the student is not entitled to any remuneration from the host institution. The host may, however, provide benefits in kind or a supplementary allowance in accordance with its policies and applicable regulations.</p>
+    </div>
+
+    <div class="article">
+      <p class="article-title">Article 11 &mdash; Commitment and Continuity</p>
+      <p>By signing, the student irrevocably commits to completing the full internship. Unilateral abandonment will result in disqualification from presenting a final-year project during the same academic year and a formal note in the academic record.</p>
+    </div>
+
+    <div class="article">
+      <p class="article-title">Article 12 &mdash; Duration and Entry into Force</p>
+      <p>This convention is valid solely from <strong>{{ internship.start_date|date:"d M Y" }}</strong> to <strong>{{ internship.end_date|date:"d M Y" }}</strong> and enters into force upon signature by all parties.</p>
+    </div>
+
+    <hr class="rule"/>
+
+    <!-- Signatures -->
+    <div class="sig-section">
+      <p style="font-size:9pt; margin-bottom:12px; color:#444;">
+        Done at <strong>{{ internship.student.university.wilaya }}</strong>, on <strong>{{ generated_date|date:"d M Y" }}</strong>
+      </p>
+      <table class="sig-table">
+        <tr>
+          <td>
+            <div class="sig-role">For {{ internship.student.university.name }}</div>
+            <div class="sig-name">{{ admin.title }}</div>
+            <div class="sig-name">{{ admin.department }}</div>
+            <div class="sig-date">Date : _______________</div>
+            <div class="sig-box">Stamp &amp; Signature</div>
+          </td>
+          <td>
+            <div class="sig-role">For the Host Organisation</div>
+            <div class="sig-name">{{ internship.company.name }}</div>
+            <div class="sig-name">{{ internship.company.wilaya }}</div>
+            <div class="sig-date">Date : _______________</div>
+            <div class="sig-box">Stamp &amp; Signature</div>
+          </td>
+          <td>
+            <div class="sig-role">The Student</div>
+            <div class="sig-name">{{ internship.student.full_name }}</div>
+            <div class="sig-name">{{ internship.student.email }}</div>
+            <div class="sig-date">Date : _______________</div>
+            <div class="sig-box">Signature</div>
+          </td>
+        </tr>
+      </table>
+
+      <div class="student-ack">
+        <strong>Student Acknowledgment</strong><br/>
+        I, <strong>{{ internship.student.full_name }}</strong>,
+        confirm that I have read and accept all the terms of this convention.
+        <div class="ack-sig-row">
+          <div class="ack-sig-item">Date<div class="ack-sig-line"></div></div>
+          <div class="ack-sig-item" style="flex:2;">Signature<div class="ack-sig-line"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="footnote">
+      * Drawn up in <strong>3</strong> original copies: one for the student, one for the host institution, and one for {{ internship.student.university.name }}.
+    </p>
+
+  </div><!-- /articles-page -->
+
+</body>
+</html>
