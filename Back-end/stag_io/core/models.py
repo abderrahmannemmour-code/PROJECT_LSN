@@ -179,7 +179,17 @@ class Admin(User):
 
 
 class Internship(models.Model):
-    """Represents an internship linking a Student to a Company."""
+    """
+    Represents a student's application to an InternshipOffer.
+    Previously called 'Application' in the design docs.
+    We keep it as 'Internship' to avoid breaking the admin code.
+
+    Flow:
+    1. Student applies → status = PENDING
+    2. Company accepts → status = ACCEPTED_BY_COMPANY
+    3. Admin validates → status = VALIDATED (PDF generated)
+    4. Company/Admin rejects → status = REJECTED
+    """
 
     class Status(models.TextChoices):
         PENDING = 'pending', 'Pending'
@@ -188,10 +198,21 @@ class Internship(models.Model):
         REJECTED = 'rejected', 'Rejected'
 
     student = models.ForeignKey(
-        Student, on_delete=models.CASCADE, related_name='internships',
+        Student,
+        on_delete=models.CASCADE,
+        related_name='internships',
     )
     company = models.ForeignKey(
-        Company, on_delete=models.CASCADE, related_name='internships',
+        Company,
+        on_delete=models.CASCADE,
+        related_name='internships',
+    )
+    offer = models.ForeignKey(
+        'InternshipOffer',
+        on_delete=models.CASCADE,
+        related_name='applications',
+        null=True,
+        blank=True,
     )
     subject = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -209,6 +230,8 @@ class Internship(models.Model):
         verbose_name = 'Internship'
         verbose_name_plural = 'Internships'
         ordering = ['-created_at']
+        # A student can only apply once per offer
+        unique_together = [('student', 'offer')]
 
     def __str__(self):
         return f'{self.student.full_name} @ {self.company.name} — {self.status}'

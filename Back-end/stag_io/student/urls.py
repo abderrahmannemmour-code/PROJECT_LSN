@@ -5,6 +5,7 @@ from student import views
 app_name = 'student'
 
 urlpatterns = [
+    # Skills
     path(
         'skills/',
         views.SkillListView.as_view(),
@@ -24,5 +25,38 @@ urlpatterns = [
         'me/skills/<int:pk>/remove/',
         views.RemoveSkillView.as_view(),
         name='remove-skill',
+    ),
+    # Offer search
+    path(
+        'offers/',
+        views.StudentOfferListView.as_view(),
+        name='offer-list',
+    ),
+    path(
+        'offers/<int:pk>/',
+        views.StudentOfferDetailView.as_view(),
+        name='offer-detail',
+    ),
+    # Apply
+    path(
+        'offers/<int:pk>/apply/',
+        views.ApplyToOfferView.as_view(),
+        name='apply',
+    ),
+    # Applications
+    path(
+        'applications/',
+        views.MyApplicationListView.as_view(),
+        name='application-list',
+    ),
+    path(
+        'applications/<int:pk>/',
+        views.MyApplicationDetailView.as_view(),
+        name='application-detail',
+    ),
+    path(
+        'applications/<int:pk>/document/',
+        views.DownloadAgreementView.as_view(),
+        name='application-document',
     ),
 ]
