@@ -253,6 +253,7 @@ class InternshipOffer(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     location = models.CharField(max_length=255)
+    wilaya = models.CharField(max_length=100, blank=True)
     type = models.CharField(
         max_length=10,
         choices=Type.choices,
@@ -339,3 +340,27 @@ class Notification(models.Model):
 
     def __str__(self):
         return f'{self.notification_type} → {self.recipient.email}'
+    
+
+
+class OfferSkill(models.Model):
+    """
+    Junction table linking an InternshipOffer to a Skill.
+    Same concept as StudentSkill — one row per required skill chip.
+    """
+    offer = models.ForeignKey(
+        InternshipOffer,
+        on_delete=models.CASCADE,
+        related_name='offer_skills',
+    )
+    skill = models.ForeignKey(
+        'student.Skill',
+        on_delete=models.CASCADE,
+        related_name='offer_skills',
+    )
+
+    class Meta:
+        unique_together = ('offer', 'skill')
+
+    def __str__(self):
+        return f'{self.offer.title} → {self.skill.name}'
