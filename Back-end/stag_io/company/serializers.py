@@ -362,3 +362,56 @@ class UpdateInternshipOfferSerializer(serializers.ModelSerializer):
                 )
 
         return instance
+    
+
+class StudentProfileSerializer(serializers.ModelSerializer):
+    """
+    Student profile shown to the company when reviewing applicants.
+    Shows name, contact, skills — enough to evaluate the candidate.
+    """
+    from student.models import Skill
+
+    skills = serializers.SerializerMethodField()
+    profile_image = serializers.ImageField(read_only=True)
+
+    def get_skills(self, obj):
+        student_skills = obj.student_skills.select_related('skill').all()
+        return [
+            {'id': ss.skill.id, 'name': ss.skill.name}
+            for ss in student_skills
+        ]
+
+    class Meta:
+        from core.models import Student
+        model = Student
+        fields = [
+            'id',
+            'full_name',
+            'email',
+            'wilaya',
+            'github_link',
+            'portfolio_link',
+            'profile_image',
+            'skills',
+        ]
+
+
+class ApplicantSerializer(serializers.ModelSerializer):
+    """
+    One applicant row shown in the company's applicants dashboard.
+    Combines the application status with the student's profile.
+    """
+    student = StudentProfileSerializer(read_only=True)
+    offer_title = serializers.CharField(source='offer.title', read_only=True)
+
+    class Meta:
+        from core.models import Internship
+        model = Internship
+        fields = [
+            'id',
+            'offer_title',
+            'student',
+            'status',
+            'created_at',
+            'updated_at',
+        ]

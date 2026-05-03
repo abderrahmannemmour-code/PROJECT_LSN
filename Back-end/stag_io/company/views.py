@@ -1,16 +1,17 @@
-"""Views for the company internship offer API."""
+"""Views for the company internship offer and applicant management API."""
 from drf_spectacular.utils import extend_schema
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from core.models import Company, InternshipOffer
+from core.models import Company, InternshipOffer, Internship, Notification, Admin
 from company.serializers import (
     InternshipOfferSerializer,
     CreateInternshipOfferSerializer,
     UpdateInternshipOfferSerializer,
+    ApplicantSerializer,
 )
 from user.views import IsCompany
 
@@ -19,6 +20,8 @@ def get_company(request):
     """Get the Company object for the currently logged-in user."""
     return Company.objects.get(pk=request.user.pk)
 
+
+# ── Offer views ──────────────────────────────────────────────────────
 
 @extend_schema(tags=['Company Offers'])
 class OfferListCreateView(APIView):
@@ -32,7 +35,6 @@ class OfferListCreateView(APIView):
 
     @extend_schema(responses={200: InternshipOfferSerializer(many=True)})
     def get(self, request):
-        """Returns all offers posted by the logged-in company."""
         company = get_company(request)
         offers = InternshipOffer.objects.filter(company=company)
         serializer = InternshipOfferSerializer(
@@ -45,7 +47,6 @@ class OfferListCreateView(APIView):
         responses={201: InternshipOfferSerializer},
     )
     def post(self, request):
-        """Creates a new internship offer for the logged-in company."""
         serializer = CreateInternshipOfferSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(
@@ -74,7 +75,6 @@ class OfferDetailView(APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_offer(self, pk, company):
-        """Fetch offer by ID and verify it belongs to this company."""
         try:
             return InternshipOffer.objects.get(pk=pk, company=company)
         except InternshipOffer.DoesNotExist:
@@ -82,7 +82,6 @@ class OfferDetailView(APIView):
 
     @extend_schema(responses={200: InternshipOfferSerializer})
     def get(self, request, pk):
-        """View details of one specific offer."""
         company = get_company(request)
         offer = self.get_offer(pk, company)
         if not offer:
@@ -100,10 +99,6 @@ class OfferDetailView(APIView):
         responses={200: InternshipOfferSerializer},
     )
     def patch(self, request, pk):
-        """
-        Partially update an offer.
-        Only send the fields you want to change.
-        """
         company = get_company(request)
         offer = self.get_offer(pk, company)
         if not offer:
@@ -112,9 +107,7 @@ class OfferDetailView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         serializer = UpdateInternshipOfferSerializer(
-            offer,
-            data=request.data,
-            partial=True,
+            offer, data=request.data, partial=True,
         )
         if not serializer.is_valid():
             return Response(
@@ -131,11 +124,6 @@ class OfferDetailView(APIView):
 
     @extend_schema(responses={204: None})
     def delete(self, request, pk):
-        """
-        Delete an offer permanently.
-        The frontend handles the confirmation dialog.
-        Returns 204 No Content on success.
-        """
         company = get_company(request)
         offer = self.get_offer(pk, company)
         if not offer:
@@ -145,3 +133,162 @@ class OfferDetailView(APIView):
             )
         offer.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ── Applicant management views ───────────────────────────────────────
+
+@extend_schema(tags=['Company Applicants'])
+class OfferApplicantListView(generics.ListAPIView):
+    """
+    GET /api/company/offers/<id>/applicants/
+    List all students who applied to one of this company's offers.
+    Shows applicant profile info and their current application status.
+    """
+    serializer_class = ApplicantSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsCompany]
+
+    def get_queryset(self):
+        company = get_company(self.request)
+        offer_id = self.kwargs['pk']
+
+        # Make sure the offer belongs to this company
+        try:
+            offer = InternshipOffer.objects.get(pk=offer_id, company=company)
+        except InternshipOffer.DoesNotExist:
+            return Internship.objects.none()
+
+        return Internship.objects.filter(
+            offer=offer,
+        ).select_related(
+            'student', 'offer',
+        ).prefetch_related(
+            'student__student_skills__skill',
+        ).order_by('-created_at')
+
+
+@extend_schema(tags=['Company Applicants'])
+class AcceptApplicantView(APIView):
+    """
+    POST /api/company/applications/<id>/accept/
+    Company accepts a student's application.
+    """
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsCompany]
+
+    def post(self, request, pk):
+        company = get_company(request)
+
+        # 1. Get the application and verify it belongs to this company
+        try:
+            application = Internship.objects.select_related(
+                'student', 'student__university', 'company', 'offer',
+            ).get(pk=pk, company=company)
+        except Internship.DoesNotExist:
+            return Response(
+                {'detail': 'Application not found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # 2. Can only accept pending applications
+        if application.status != Internship.Status.PENDING:
+            return Response(
+                {
+                    'detail': (
+                        f'Cannot accept this application. '
+                        f'Current status is: {application.status}'
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # 3. Update status
+        application.status = Internship.Status.ACCEPTED_BY_COMPANY
+        application.save()
+
+        # 5. Send notification to all admins of the student's university
+        #    so they can validate or reject the internship
+        self._notify_admins(application)
+
+        return Response(
+            {
+                'detail': 'Application accepted successfully. '
+                          'The university has been notified.',
+                'application_id': application.id,
+                'status': application.status,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def _notify_admins(self, application):
+        """
+        Create a Notification for every admin in the student's university.
+        If the student has no university set, no notification is sent
+        (edge case — shouldn't happen in production).
+        """
+        university = application.student.university
+        if not university:
+            return
+
+        admins = Admin.objects.filter(university=university)
+        for admin in admins:
+            Notification.objects.create(
+                recipient=admin,
+                internship=application,
+                notification_type=Notification.Type.INTERNSHIP_ACCEPTED,
+                message=(
+                    f'{application.student.full_name} has been accepted by '
+                    f'{application.company.name} for the internship: '
+                    f'"{application.subject}". '
+                    f'Please review and validate or reject this internship.'
+                ),
+            )
+
+
+@extend_schema(tags=['Company Applicants'])
+class RejectApplicantView(APIView):
+    """
+    POST /api/company/applications/<id>/reject/
+    Company rejects a student's application.
+
+    Only pending applications can be rejected.
+    The offer stays open so other students can still apply.
+    """
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsCompany]
+
+    def post(self, request, pk):
+        company = get_company(request)
+
+        try:
+            application = Internship.objects.select_related(
+                'student', 'company', 'offer',
+            ).get(pk=pk, company=company)
+        except Internship.DoesNotExist:
+            return Response(
+                {'detail': 'Application not found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if application.status != Internship.Status.PENDING:
+            return Response(
+                {
+                    'detail': (
+                        f'Cannot reject this application. '
+                        f'Current status is: {application.status}'
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        application.status = Internship.Status.REJECTED
+        application.save()
+
+        return Response(
+            {
+                'detail': 'Application rejected.',
+                'application_id': application.id,
+                'status': application.status,
+            },
+            status=status.HTTP_200_OK,
+        )

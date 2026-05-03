@@ -165,6 +165,7 @@ SPECTACULAR_SETTINGS = {
         {'name': 'Admin', 'description': 'Admin-only operations'},
         {'name': 'Skills', 'description': 'Skills list & student skill management'},
         {'name': 'Company Offers', 'description': 'Internship offer management for companies'},
+        {'name': 'Company Applicants', 'description': 'View and manage student applications'},
     ],
 }
 
