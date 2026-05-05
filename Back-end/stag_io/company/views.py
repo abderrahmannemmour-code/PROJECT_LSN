@@ -1,5 +1,6 @@
 """Views for the company internship offer and applicant management API."""
 from drf_spectacular.utils import extend_schema
+from drf_spectacular.types import OpenApiTypes
 from rest_framework import status, generics
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
@@ -169,6 +170,27 @@ class OfferApplicantListView(generics.ListAPIView):
 
 
 @extend_schema(tags=['Company Applicants'])
+class AllApplicantsListView(generics.ListAPIView):
+    """
+    GET /api/company/applications/
+    List all students who applied to any of this company's offers.
+    """
+    serializer_class = ApplicantSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsCompany]
+
+    def get_queryset(self):
+        company = get_company(self.request)
+        return Internship.objects.filter(
+            company=company,
+        ).select_related(
+            'student', 'offer',
+        ).prefetch_related(
+            'student__student_skills__skill',
+        ).order_by('-created_at')
+
+
+@extend_schema(tags=['Company Applicants'])
 class AcceptApplicantView(APIView):
     """
     POST /api/company/applications/<id>/accept/
@@ -177,6 +199,7 @@ class AcceptApplicantView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsCompany]
 
+    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT, 400: OpenApiTypes.OBJECT})
     def post(self, request, pk):
         company = get_company(request)
         try:
@@ -227,6 +250,7 @@ class RejectApplicantView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsCompany]
 
+    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT, 400: OpenApiTypes.OBJECT})
     def post(self, request, pk):
         company = get_company(request)
         try:

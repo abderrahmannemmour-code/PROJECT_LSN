@@ -84,11 +84,11 @@ WSGI_APPLICATION = 'stag_io.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': 'localhost',
-        'NAME': 'devdb',
-        'USER': 'devuser',
-        'PASSWORD': 'changeme',
-        'PORT': '5433',
+        'HOST': os.environ.get('DB_HOST', 'db'),
+        'NAME': os.environ.get('DB_NAME', 'devdb'),
+        'USER': os.environ.get('DB_USER', 'devuser'),
+        'PASSWORD': os.environ.get('DB_PASS', 'changeme'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 

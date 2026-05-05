@@ -3,68 +3,7 @@ from rest_framework import serializers
 from core.models import InternshipOffer, OfferSkill
 from student.models import Skill
 
-ALGERIAN_WILAYAS = [
-    ('01 - Adrar', '01 - Adrar'),
-    ('02 - Chlef', '02 - Chlef'),
-    ('03 - Laghouat', '03 - Laghouat'),
-    ('04 - Oum El Bouaghi', '04 - Oum El Bouaghi'),
-    ('05 - Batna', '05 - Batna'),
-    ('06 - Béjaïa', '06 - Béjaïa'),
-    ('07 - Biskra', '07 - Biskra'),
-    ('08 - Béchar', '08 - Béchar'),
-    ('09 - Blida', '09 - Blida'),
-    ('10 - Bouira', '10 - Bouira'),
-    ('11 - Tamanrasset', '11 - Tamanrasset'),
-    ('12 - Tébessa', '12 - Tébessa'),
-    ('13 - Tlemcen', '13 - Tlemcen'),
-    ('14 - Tiaret', '14 - Tiaret'),
-    ('15 - Tizi Ouzou', '15 - Tizi Ouzou'),
-    ('16 - Alger', '16 - Alger'),
-    ('17 - Djelfa', '17 - Djelfa'),
-    ('18 - Jijel', '18 - Jijel'),
-    ('19 - Sétif', '19 - Sétif'),
-    ('20 - Saïda', '20 - Saïda'),
-    ('21 - Skikda', '21 - Skikda'),
-    ('22 - Sidi Bel Abbès', '22 - Sidi Bel Abbès'),
-    ('23 - Annaba', '23 - Annaba'),
-    ('24 - Guelma', '24 - Guelma'),
-    ('25 - Constantine', '25 - Constantine'),
-    ('26 - Médéa', '26 - Médéa'),
-    ('27 - Mostaganem', '27 - Mostaganem'),
-    ('28 - M\'Sila', '28 - M\'Sila'),
-    ('29 - Mascara', '29 - Mascara'),
-    ('30 - Ouargla', '30 - Ouargla'),
-    ('31 - Oran', '31 - Oran'),
-    ('32 - El Bayadh', '32 - El Bayadh'),
-    ('33 - Illizi', '33 - Illizi'),
-    ('34 - Bordj Bou Arréridj', '34 - Bordj Bou Arréridj'),
-    ('35 - Boumerdès', '35 - Boumerdès'),
-    ('36 - El Tarf', '36 - El Tarf'),
-    ('37 - Tindouf', '37 - Tindouf'),
-    ('38 - Tissemsilt', '38 - Tissemsilt'),
-    ('39 - El Oued', '39 - El Oued'),
-    ('40 - Khenchela', '40 - Khenchela'),
-    ('41 - Souk Ahras', '41 - Souk Ahras'),
-    ('42 - Tipaza', '42 - Tipaza'),
-    ('43 - Mila', '43 - Mila'),
-    ('44 - Aïn Defla', '44 - Aïn Defla'),
-    ('45 - Naâma', '45 - Naâma'),
-    ('46 - Aïn Témouchent', '46 - Aïn Témouchent'),
-    ('47 - Ghardaïa', '47 - Ghardaïa'),
-    ('48 - Relizane', '48 - Relizane'),
-    ('49 - El M\'Ghair', '49 - El M\'Ghair'),
-    ('50 - El Menia', '50 - El Menia'),
-    ('51 - Ouled Djellal', '51 - Ouled Djellal'),
-    ('52 - Bordj Badji Mokhtar', '52 - Bordj Badji Mokhtar'),
-    ('53 - Béni Abbès', '53 - Béni Abbès'),
-    ('54 - Timimoun', '54 - Timimoun'),
-    ('55 - Touggourt', '55 - Touggourt'),
-    ('56 - Djanet', '56 - Djanet'),
-    ('57 - In Salah', '57 - In Salah'),
-    ('58 - In Guezzam', '58 - In Guezzam'),
-]
 
-WILAYA_VALUES = [w[0] for w in ALGERIAN_WILAYAS]
 
 
 class SkillSerializer(serializers.ModelSerializer):
@@ -142,10 +81,7 @@ class CreateInternshipOfferSerializer(serializers.ModelSerializer):
         write_only=True,
         help_text='List of skill IDs required for this offer.',
     )
-    wilaya = serializers.ChoiceField(
-        choices=WILAYA_VALUES,
-        required=True,
-    )
+
 
     class Meta:
         model = InternshipOffer
@@ -185,13 +121,7 @@ class CreateInternshipOfferSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def validate_wilaya(self, value):
-        """Ensure the wilaya is one of the 58 valid Algerian wilayas."""
-        if value not in WILAYA_VALUES:
-            raise serializers.ValidationError(
-                'Invalid wilaya. Must be one of the 58 Algerian wilayas.'
-            )
-        return value
+
 
     def validate(self, data):
         start_date = data.get('start_date')
@@ -253,10 +183,7 @@ class UpdateInternshipOfferSerializer(serializers.ModelSerializer):
         write_only=True,
         help_text='Replaces all required skills. Send [] to clear all.',
     )
-    wilaya = serializers.ChoiceField(
-        choices=WILAYA_VALUES,
-        required=False,
-    )
+
 
     class Meta:
         model = InternshipOffer

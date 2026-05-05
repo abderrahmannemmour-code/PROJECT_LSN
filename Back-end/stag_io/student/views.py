@@ -2,12 +2,12 @@
 from django.http import FileResponse
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
-from rest_framework import generics, status
+from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from core.models import Student, InternshipOffer, Internship
+from core.models import Student, InternshipOffer, Internship, InternshipAgreement
 from student.models import Skill, StudentSkill
 from student.serializers import (
     SkillSerializer,
@@ -17,6 +17,7 @@ from student.serializers import (
     StudentOfferDetailSerializer,
     ApplicationListSerializer,
     ApplicationDetailSerializer,
+    StudentDocumentListSerializer,
 )
 from user.views import IsStudent
 
@@ -37,6 +38,7 @@ class SkillListView(generics.ListAPIView):
     """
     serializer_class = SkillSerializer
     authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
     queryset = Skill.objects.all()
 
 
@@ -105,6 +107,7 @@ class RemoveSkillView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsStudent]
 
+    @extend_schema(responses={204: None})
     def delete(self, request, pk):
         student = get_student(request)
         try:
@@ -252,6 +255,7 @@ class StudentOfferDetailView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsStudent]
 
+    @extend_schema(responses={200: StudentOfferDetailSerializer})
     def get(self, request, pk):
         try:
             offer = InternshipOffer.objects.prefetch_related(
@@ -285,6 +289,7 @@ class ApplyToOfferView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsStudent]
 
+    @extend_schema(request=None, responses={201: OpenApiTypes.OBJECT, 400: OpenApiTypes.OBJECT})
     def post(self, request, pk):
         # 1. Get the offer
         try:
@@ -365,6 +370,7 @@ class MyApplicationDetailView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsStudent]
 
+    @extend_schema(responses={200: ApplicationDetailSerializer})
     def get(self, request, pk):
         student = get_student(request)
         try:
@@ -394,6 +400,7 @@ class DownloadAgreementView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsStudent]
 
+    @extend_schema(responses={200: OpenApiTypes.BINARY, 403: OpenApiTypes.OBJECT, 404: OpenApiTypes.OBJECT})
     def get(self, request, pk):
         student = get_student(request)
 
@@ -428,3 +435,20 @@ class DownloadAgreementView(APIView):
             filename=f'internship_agreement_{application.id}.pdf',
             content_type='application/pdf',
         )
+
+
+@extend_schema(tags=['Student - Applications'])
+class MyDocumentListView(generics.ListAPIView):
+    """
+    GET /api/student/documents/
+    List all generated internship agreements (documents) for the logged-in student.
+    """
+    serializer_class = StudentDocumentListSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsStudent]
+
+    def get_queryset(self):
+        student = get_student(self.request)
+        return InternshipAgreement.objects.filter(
+            internship__student=student,
+        ).select_related('internship__offer', 'internship__company').order_by('-generated_at')

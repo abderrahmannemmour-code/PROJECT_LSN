@@ -5,9 +5,9 @@ ENV PYTHONUNBUFFERED=1
 
 COPY ./requirements.txt /tmp/requirements.txt
 COPY ./requirements.dev.txt /tmp/requirements.dev.txt
-COPY ./stag_io /stag_io
 WORKDIR /stag_io
 EXPOSE 8000
+
 ARG DEV=false
 RUN python -m venv /py && \
     /py/bin/pip install --upgrade pip && \
@@ -27,8 +27,10 @@ RUN python -m venv /py && \
     mkdir -p /vol/web/media && \
     mkdir -p /vol/web/static && \
     chown -R django-user:django-user /vol && \
-    chmod -R 755 /vol && \
-    chown -R django-user:django-user /stag_io
+    chmod -R 755 /vol
+
+COPY ./stag_io /stag_io
+RUN chown -R django-user:django-user /stag_io
 
 ENV PATH="/py/bin:$PATH"
 

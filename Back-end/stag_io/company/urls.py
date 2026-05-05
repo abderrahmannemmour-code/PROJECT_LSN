@@ -23,6 +23,11 @@ urlpatterns = [
         name='offer-applicants',
     ),
     path(
+        'applications/',
+        views.AllApplicantsListView.as_view(),
+        name='all-applications',
+    ),
+    path(
         'applications/<int:pk>/accept/',
         views.AcceptApplicantView.as_view(),
         name='application-accept',

@@ -4,6 +4,7 @@ Since notifications now go to any User, we can reuse the same
 views for all roles — just filter by the logged-in user.
 """
 from drf_spectacular.utils import extend_schema
+from drf_spectacular.types import OpenApiTypes
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -64,6 +65,7 @@ class MarkNotificationReadView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(request=None, responses={200: NotificationSerializer, 404: OpenApiTypes.OBJECT})
     def patch(self, request, pk):
         try:
             notification = Notification.objects.get(
@@ -92,6 +94,7 @@ class MarkAllNotificationsReadView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
     def patch(self, request):
         count = Notification.objects.filter(
             recipient=request.user,

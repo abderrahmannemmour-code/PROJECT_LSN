@@ -1,0 +1,2600 @@
+openapi: 3.0.3
+info:
+  title: ''
+  version: 0.0.0
+paths:
+  /api/administration/internships/:
+    get:
+      operationId: administration_internships_list
+      description: List all internships for admin's university.
+      tags:
+      - Administration
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminInternship'
+          description: ''
+  /api/administration/internships/{id}/:
+    get:
+      operationId: administration_internships_retrieve
+      description: Retrieve a single internship detail.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Administration
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminInternshipDetail'
+          description: ''
+  /api/administration/internships/{id}/agreement/:
+    get:
+      operationId: administration_internships_agreement_retrieve
+      description: Download the generated internship agreement PDF.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Administration
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/administration/internships/{id}/reject/:
+    patch:
+      operationId: administration_internships_reject_partial_update
+      description: Reject an internship (set status to 'rejected').
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Administration
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminInternship'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/administration/internships/{id}/validate/:
+    patch:
+      operationId: administration_internships_validate_partial_update
+      description: Validate an internship (set status to 'validated').
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Administration
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminInternship'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/administration/notifications/:
+    get:
+      operationId: administration_notifications_list
+      description: List all notifications for the authenticated admin.
+      tags:
+      - Administration - Notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/administration/notifications/{id}/read/:
+    patch:
+      operationId: administration_notifications_read_partial_update
+      description: Mark a single notification as read.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Administration - Notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/administration/notifications/unread/:
+    get:
+      operationId: administration_notifications_unread_list
+      description: List unread notifications for the authenticated admin.
+      tags:
+      - Administration - Notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/administration/statistics/:
+    get:
+      operationId: administration_statistics_retrieve
+      description: Main dashboard summary for admin's university.
+      tags:
+      - Administration - Statistics
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/administration/statistics/agreements/:
+    get:
+      operationId: administration_statistics_agreements_retrieve
+      description: Agreement generation coverage for university internships.
+      tags:
+      - Administration - Statistics
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/administration/statistics/companies/:
+    get:
+      operationId: administration_statistics_companies_retrieve
+      description: Company-level internship outcomes for admin's university.
+      tags:
+      - Administration - Statistics
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/administration/statistics/companies/{company_id}/:
+    get:
+      operationId: administration_statistics_companies_retrieve_2
+      description: Detailed analytics for one company within admin's university scope.
+      parameters:
+      - in: path
+        name: company_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Administration - Statistics
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/administration/statistics/statuses/:
+    get:
+      operationId: administration_statistics_statuses_retrieve
+      description: Focused internship status analytics for the university.
+      tags:
+      - Administration - Statistics
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/administration/statistics/students/:
+    get:
+      operationId: administration_statistics_students_retrieve
+      description: Student participation metrics for the admin's university.
+      tags:
+      - Administration - Statistics
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/administration/statistics/trends/:
+    get:
+      operationId: administration_statistics_trends_retrieve
+      description: Monthly or weekly internship trend aggregation.
+      tags:
+      - Administration - Statistics
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/administration/statistics/wilayas/:
+    get:
+      operationId: administration_statistics_wilayas_retrieve
+      description: Geographic distribution grouped by student or company wilaya.
+      tags:
+      - Administration - Statistics
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/company/applications/:
+    get:
+      operationId: company_applications_list
+      description: |-
+        GET /api/company/applications/
+        List all students who applied to any of this company's offers.
+      tags:
+      - Company Applicants
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Applicant'
+          description: ''
+  /api/company/applications/{id}/accept/:
+    post:
+      operationId: company_applications_accept_create
+      description: |-
+        POST /api/company/applications/<id>/accept/
+        Company accepts a student. Notifies student and all university admins.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Company Applicants
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/company/applications/{id}/reject/:
+    post:
+      operationId: company_applications_reject_create
+      description: |-
+        POST /api/company/applications/<id>/reject/
+        Company rejects a student's application. Notifies the student.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Company Applicants
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/company/offers/:
+    get:
+      operationId: company_offers_list
+      description: |-
+        GET  /api/company/offers/ — list this company's offers
+        POST /api/company/offers/ — create a new offer
+      tags:
+      - Company Offers
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InternshipOffer'
+          description: ''
+    post:
+      operationId: company_offers_create
+      description: |-
+        GET  /api/company/offers/ — list this company's offers
+        POST /api/company/offers/ — create a new offer
+      tags:
+      - Company Offers
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateInternshipOfferRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateInternshipOfferRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInternshipOfferRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternshipOffer'
+          description: ''
+  /api/company/offers/{id}/:
+    get:
+      operationId: company_offers_retrieve
+      description: |-
+        GET    /api/company/offers/<id>/ — view a specific offer
+        PATCH  /api/company/offers/<id>/ — modify an offer
+        DELETE /api/company/offers/<id>/ — delete an offer
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Company Offers
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternshipOffer'
+          description: ''
+    patch:
+      operationId: company_offers_partial_update
+      description: |-
+        GET    /api/company/offers/<id>/ — view a specific offer
+        PATCH  /api/company/offers/<id>/ — modify an offer
+        DELETE /api/company/offers/<id>/ — delete an offer
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Company Offers
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateInternshipOfferRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateInternshipOfferRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateInternshipOfferRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternshipOffer'
+          description: ''
+    delete:
+      operationId: company_offers_destroy
+      description: |-
+        GET    /api/company/offers/<id>/ — view a specific offer
+        PATCH  /api/company/offers/<id>/ — modify an offer
+        DELETE /api/company/offers/<id>/ — delete an offer
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Company Offers
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/company/offers/{id}/applicants/:
+    get:
+      operationId: company_offers_applicants_list
+      description: |-
+        GET /api/company/offers/<id>/applicants/
+        List all students who applied to one of this company's offers.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Company Applicants
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Applicant'
+          description: ''
+  /api/notifications/:
+    get:
+      operationId: notifications_list
+      description: |-
+        GET /api/notifications/
+        Returns all notifications for the logged-in user (any role).
+      tags:
+      - Notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/notifications/{id}/read/:
+    patch:
+      operationId: notifications_read_partial_update
+      description: |-
+        PATCH /api/notifications/<id>/read/
+        Mark a single notification as read.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/notifications/read-all/:
+    patch:
+      operationId: notifications_read_all_partial_update
+      description: |-
+        PATCH /api/notifications/read-all/
+        Mark ALL notifications as read in one call.
+        Useful for a 'Mark all as read' button in the UI.
+      tags:
+      - Notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/notifications/unread/:
+    get:
+      operationId: notifications_unread_list
+      description: |-
+        GET /api/notifications/unread/
+        Returns only unread notifications for the logged-in user.
+      tags:
+      - Notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/schema/:
+    get:
+      operationId: schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      tags:
+      - schema
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/student/applications/:
+    get:
+      operationId: student_applications_list
+      description: |-
+        GET /api/student/applications/
+        List all of the logged-in student's applications with their statuses.
+        Ordered by most recent first.
+      tags:
+      - Student - Applications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApplicationList'
+          description: ''
+  /api/student/applications/{id}/:
+    get:
+      operationId: student_applications_retrieve
+      description: |-
+        GET /api/student/applications/<id>/
+        View full details of one specific application.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Student - Applications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationDetail'
+          description: ''
+  /api/student/applications/{id}/document/:
+    get:
+      operationId: student_applications_document_retrieve
+      description: |-
+        GET /api/student/applications/<id>/document/
+        Download the internship agreement PDF.
+        Only available when status = VALIDATED and a PDF has been generated.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Student - Applications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/student/documents/:
+    get:
+      operationId: student_documents_list
+      description: |-
+        GET /api/student/documents/
+        List all generated internship agreements (documents) for the logged-in student.
+      tags:
+      - Student - Applications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StudentDocumentList'
+          description: ''
+  /api/student/me/skills/:
+    get:
+      operationId: student_me_skills_list
+      description: |-
+        GET /api/student/me/skills/
+        Returns the skills the logged-in student has selected.
+      tags:
+      - Skills
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StudentSkill'
+          description: ''
+  /api/student/me/skills/{id}/remove/:
+    delete:
+      operationId: student_me_skills_remove_destroy
+      description: |-
+        DELETE /api/student/me/skills/<id>/remove/
+        Student removes a skill chip by clicking X.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Skills
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/student/me/skills/add/:
+    post:
+      operationId: student_me_skills_add_create
+      description: |-
+        POST /api/student/me/skills/add/
+        Student adds a skill chip to their profile.
+        Request body: { "skill_id": 3 }
+      tags:
+      - Skills
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddStudentSkillRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AddStudentSkillRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddStudentSkillRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentSkill'
+          description: ''
+  /api/student/offers/:
+    get:
+      operationId: student_offers_list
+      description: |-
+        GET /api/student/offers/
+        Browse and search all open internship offers.
+
+        Filters:
+        - search      → matches title or description
+        - wilaya      → exact wilaya string e.g. '19 - Sétif'
+        - skills      → comma-separated skill IDs e.g. '1,3,5'
+        - type        → 'paid' or 'unpaid'
+        - duration    → 'short' (2-4 weeks), 'medium' (1-2 months), 'long' (2+ months)
+
+        Ordering:
+        - recent      → newest first (default)
+        - salary_high → highest salary first (paid offers only)
+        - start_soon  → earliest start date first
+      parameters:
+      - in: query
+        name: duration
+        schema:
+          type: string
+        description: short (14-28 days), medium (29-60 days), long (60+ days)
+      - in: query
+        name: ordering
+        schema:
+          type: string
+        description: recent (default), salary_high, start_soon
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Search in title and description
+      - in: query
+        name: skills
+        schema:
+          type: string
+        description: Comma-separated skill IDs e.g. 1,3,5
+      - in: query
+        name: type
+        schema:
+          type: string
+        description: paid or unpaid
+      - in: query
+        name: wilaya
+        schema:
+          type: string
+        description: Filter by wilaya e.g. 19 - Sétif
+      tags:
+      - Student - Offers
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StudentOfferList'
+          description: ''
+  /api/student/offers/{id}/:
+    get:
+      operationId: student_offers_retrieve
+      description: |-
+        GET /api/student/offers/<id>/
+        View full details of a specific offer.
+        Also tells the frontend if this student already applied
+        via the 'already_applied' field.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Student - Offers
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentOfferDetail'
+          description: ''
+  /api/student/offers/{id}/apply/:
+    post:
+      operationId: student_offers_apply_create
+      description: |-
+        POST /api/student/offers/<id>/apply/
+        Student applies to an internship offer.
+
+        Creates an Internship (application) record with status=PENDING.
+        The offer's start_date, end_date, title are copied automatically.
+        A student cannot apply twice to the same offer.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Student - Applications
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/student/skills/:
+    get:
+      operationId: student_skills_list
+      description: |-
+        GET /api/student/skills/
+        Returns all available skills as a flat list.
+        Used to populate the chips selector on the profile page.
+      tags:
+      - Skills
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Skill'
+          description: ''
+  /api/user/{id}/delete/:
+    delete:
+      operationId: user_delete_destroy
+      description: Allow an admin to delete any user by ID.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Superuser
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/user/me/:
+    get:
+      operationId: user_me_retrieve
+      description: Manage the authenticated user (GET /me, PATCH /me).
+      tags:
+      - Account
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+          description: ''
+    put:
+      operationId: user_me_update
+      description: Manage the authenticated user (GET /me, PATCH /me).
+      tags:
+      - Account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDetailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserDetailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserDetailRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+          description: ''
+    patch:
+      operationId: user_me_partial_update
+      description: Manage the authenticated user (GET /me, PATCH /me).
+      tags:
+      - Account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserDetailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserDetailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserDetailRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+          description: ''
+  /api/user/me/company/:
+    get:
+      operationId: user_me_company_retrieve
+      description: View and update company profile (name, description, wilaya, website).
+      tags:
+      - Company
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyUpdate'
+          description: ''
+    patch:
+      operationId: user_me_company_partial_update
+      description: View and update company profile (name, description, wilaya, website).
+      tags:
+      - Company
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCompanyUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCompanyUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCompanyUpdateRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyUpdate'
+          description: ''
+  /api/user/me/student/:
+    get:
+      operationId: user_me_student_retrieve
+      description: View and update student profile (full_name, wilaya, links).
+      tags:
+      - Student
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentUpdate'
+          description: ''
+    patch:
+      operationId: user_me_student_partial_update
+      description: View and update student profile (full_name, wilaya, links).
+      tags:
+      - Student
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStudentUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedStudentUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedStudentUpdateRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentUpdate'
+          description: ''
+  /api/user/me/upload-logo/:
+    patch:
+      operationId: user_me_upload_logo_partial_update
+      description: Upload a logo image for the authenticated company user.
+      tags:
+      - Company
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedLogoImageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedLogoImageRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoImage'
+          description: ''
+  /api/user/me/upload-profile-image/:
+    patch:
+      operationId: user_me_upload_profile_image_partial_update
+      description: Upload a profile image for the authenticated student user.
+      tags:
+      - Student
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileImageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileImageRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileImage'
+          description: ''
+  /api/user/register/company/:
+    post:
+      operationId: user_register_company_create
+      description: Register a new company.
+      tags:
+      - Company
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyRegisterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CompanyRegisterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CompanyRegisterRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyRegister'
+          description: ''
+  /api/user/register/student/:
+    post:
+      operationId: user_register_student_create
+      description: Register a new student.
+      tags:
+      - Student
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentRegisterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StudentRegisterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StudentRegisterRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentRegister'
+          description: ''
+  /api/user/token/:
+    post:
+      operationId: user_token_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPairRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPairRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPairRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+  /api/user/token/refresh/:
+    post:
+      operationId: user_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+components:
+  schemas:
+    AddStudentSkillRequest:
+      type: object
+      description: Validates incoming skill_id when adding a chip.
+      properties:
+        skill_id:
+          type: integer
+      required:
+      - skill_id
+    AdminInternship:
+      type: object
+      description: Read-only serializer for admin to review internships.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        student:
+          type: integer
+        student_name:
+          type: string
+          readOnly: true
+        student_email:
+          type: string
+          format: email
+          readOnly: true
+        company:
+          type: integer
+        company_name:
+          type: string
+          readOnly: true
+        company_email:
+          type: string
+          format: email
+          readOnly: true
+        subject:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/StatusEd1Enum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - company
+      - company_email
+      - company_name
+      - created_at
+      - end_date
+      - id
+      - start_date
+      - student
+      - student_email
+      - student_name
+      - subject
+      - updated_at
+    AdminInternshipDetail:
+      type: object
+      description: Detailed internship serializer with agreement metadata.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        student:
+          type: integer
+        student_name:
+          type: string
+          readOnly: true
+        student_email:
+          type: string
+          format: email
+          readOnly: true
+        company:
+          type: integer
+        company_name:
+          type: string
+          readOnly: true
+        company_email:
+          type: string
+          format: email
+          readOnly: true
+        subject:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/StatusEd1Enum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        agreement:
+          allOf:
+          - $ref: '#/components/schemas/InternshipAgreement'
+          readOnly: true
+      required:
+      - agreement
+      - company
+      - company_email
+      - company_name
+      - created_at
+      - end_date
+      - id
+      - start_date
+      - student
+      - student_email
+      - student_name
+      - subject
+      - updated_at
+    Applicant:
+      type: object
+      description: |-
+        One applicant row shown in the company's applicants dashboard.
+        Combines the application status with the student's profile.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        offer_title:
+          type: string
+          readOnly: true
+        student:
+          allOf:
+          - $ref: '#/components/schemas/StudentProfile'
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/StatusEd1Enum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - offer_title
+      - student
+      - updated_at
+    ApplicationDetail:
+      type: object
+      description: |-
+        Full application detail — shown when student clicks one application.
+        Includes offer info, status, and agreement download availability.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        offer_title:
+          type: string
+          readOnly: true
+        offer_description:
+          type: string
+          readOnly: true
+        subject:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        company_name:
+          type: string
+          readOnly: true
+        company_logo:
+          type: string
+          format: uri
+          readOnly: true
+        wilaya:
+          type: string
+          readOnly: true
+        offer_type:
+          type: string
+          readOnly: true
+        salary_per_week:
+          type: string
+          format: decimal
+          pattern: ^\d{0,8}(\.\d{0,2})?$
+          readOnly: true
+        start_date:
+          type: string
+          format: date
+          readOnly: true
+        end_date:
+          type: string
+          format: date
+          readOnly: true
+        duration_display:
+          type: string
+          readOnly: true
+        required_skills:
+          type: string
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/StatusEd1Enum'
+        agreement_available:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - agreement_available
+      - company_logo
+      - company_name
+      - created_at
+      - duration_display
+      - end_date
+      - id
+      - offer_description
+      - offer_title
+      - offer_type
+      - required_skills
+      - salary_per_week
+      - start_date
+      - subject
+      - updated_at
+      - wilaya
+    ApplicationList:
+      type: object
+      description: Compact application card shown in 'My Applications' list.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        offer_title:
+          type: string
+          readOnly: true
+        company_name:
+          type: string
+          readOnly: true
+        company_logo:
+          type: string
+          format: uri
+          readOnly: true
+        wilaya:
+          type: string
+          readOnly: true
+        offer_type:
+          type: string
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/StatusEd1Enum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - company_logo
+      - company_name
+      - created_at
+      - id
+      - offer_title
+      - offer_type
+      - wilaya
+    BlankEnum:
+      enum:
+      - ''
+    CompanyRegister:
+      type: object
+      description: Serializer for registering a new company.
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        wilaya:
+          $ref: '#/components/schemas/WilayaEnum'
+        website:
+          type: string
+          format: uri
+          maxLength: 255
+      required:
+      - email
+      - name
+      - wilaya
+    CompanyRegisterRequest:
+      type: object
+      description: Serializer for registering a new company.
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        password:
+          type: string
+          writeOnly: true
+          minLength: 5
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        wilaya:
+          $ref: '#/components/schemas/WilayaEnum'
+        website:
+          type: string
+          format: uri
+          maxLength: 255
+      required:
+      - email
+      - name
+      - password
+      - wilaya
+    CompanyUpdate:
+      type: object
+      description: Serializer for updating company profile fields.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        wilaya:
+          $ref: '#/components/schemas/WilayaEnum'
+        website:
+          type: string
+          format: uri
+          maxLength: 255
+      required:
+      - email
+      - id
+    CreateInternshipOfferRequest:
+      type: object
+      description: |-
+        Used for POST /api/company/offers/ (create).
+        skill_ids is a list of skill IDs the company selects as required.
+        Example: { "skill_ids": [1, 3, 7] }
+      properties:
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        location:
+          type: string
+          maxLength: 255
+        wilaya:
+          oneOf:
+          - $ref: '#/components/schemas/WilayaEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        salary_per_week:
+          type: string
+          format: decimal
+          pattern: ^\d{0,8}(\.\d{0,2})?$
+          nullable: true
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        photo:
+          type: string
+          format: binary
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StatusA6fEnum'
+        skill_ids:
+          type: array
+          items:
+            type: integer
+          writeOnly: true
+          description: List of skill IDs required for this offer.
+      required:
+      - description
+      - end_date
+      - location
+      - start_date
+      - title
+      - type
+    InternshipAgreement:
+      type: object
+      description: Read-only serializer for internship agreement metadata.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        pdf_url:
+          type: string
+          format: uri
+          readOnly: true
+        generated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - generated_at
+      - id
+      - pdf_url
+    InternshipOffer:
+      type: object
+      description: |-
+        Used for GET requests (list and detail).
+        Shows all fields including computed duration and required skills.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        company:
+          type: integer
+          readOnly: true
+        company_name:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        location:
+          type: string
+          maxLength: 255
+        wilaya:
+          oneOf:
+          - $ref: '#/components/schemas/WilayaEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        salary_per_week:
+          type: string
+          format: decimal
+          pattern: ^\d{0,8}(\.\d{0,2})?$
+          nullable: true
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        duration_display:
+          type: string
+          readOnly: true
+        required_skills:
+          type: string
+          readOnly: true
+        photo:
+          type: string
+          format: uri
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StatusA6fEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - company
+      - company_name
+      - created_at
+      - description
+      - duration_display
+      - end_date
+      - id
+      - location
+      - required_skills
+      - start_date
+      - title
+      - updated_at
+    LogoImage:
+      type: object
+      description: Serializer for uploading images to logos.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        logo:
+          type: string
+          format: uri
+          nullable: true
+      required:
+      - id
+      - logo
+    Notification:
+      type: object
+      description: Universal notification serializer for all actors.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        internship_id:
+          type: integer
+          readOnly: true
+        notification_type:
+          allOf:
+          - $ref: '#/components/schemas/NotificationTypeEnum'
+          readOnly: true
+        message:
+          type: string
+          readOnly: true
+        link:
+          type: string
+          readOnly: true
+        student_name:
+          type: string
+          readOnly: true
+        company_name:
+          type: string
+          readOnly: true
+        internship_subject:
+          type: string
+          readOnly: true
+        internship_status:
+          type: string
+          readOnly: true
+        is_read:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - company_name
+      - created_at
+      - id
+      - internship_id
+      - internship_status
+      - internship_subject
+      - link
+      - message
+      - notification_type
+      - student_name
+    NotificationTypeEnum:
+      enum:
+      - application_submitted
+      - application_accepted
+      - application_rejected
+      - internship_validated
+      - new_applicant
+      - agreement_ready
+      - admin_rejected
+      - internship_accepted
+      type: string
+    PatchedCompanyUpdateRequest:
+      type: object
+      description: Serializer for updating company profile fields.
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        wilaya:
+          $ref: '#/components/schemas/WilayaEnum'
+        website:
+          type: string
+          format: uri
+          maxLength: 255
+    PatchedLogoImageRequest:
+      type: object
+      description: Serializer for uploading images to logos.
+      properties:
+        logo:
+          type: string
+          format: binary
+          nullable: true
+    PatchedProfileImageRequest:
+      type: object
+      description: Serializer for uploading student profile images.
+      properties:
+        profile_image:
+          type: string
+          format: binary
+          nullable: true
+    PatchedStudentUpdateRequest:
+      type: object
+      description: Serializer for updating student profile fields.
+      properties:
+        full_name:
+          type: string
+          maxLength: 255
+        wilaya:
+          $ref: '#/components/schemas/WilayaEnum'
+        github_link:
+          type: string
+          format: uri
+          maxLength: 255
+        portfolio_link:
+          type: string
+          format: uri
+          maxLength: 255
+    PatchedUpdateInternshipOfferRequest:
+      type: object
+      description: |-
+        Used for PATCH /api/company/offers/<id>/ (partial update).
+        Every field is optional. skill_ids replaces ALL current skills.
+        Send [] to remove all skills, omit to keep existing ones unchanged.
+      properties:
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        location:
+          type: string
+          maxLength: 255
+        wilaya:
+          oneOf:
+          - $ref: '#/components/schemas/WilayaEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        salary_per_week:
+          type: string
+          format: decimal
+          pattern: ^\d{0,8}(\.\d{0,2})?$
+          nullable: true
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        photo:
+          type: string
+          format: binary
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StatusA6fEnum'
+        skill_ids:
+          type: array
+          items:
+            type: integer
+          writeOnly: true
+          description: Replaces all required skills. Send [] to clear all.
+    PatchedUserDetailRequest:
+      type: object
+      description: Serializer for the authenticated user detail (GET /me).
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+    ProfileImage:
+      type: object
+      description: Serializer for uploading student profile images.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        profile_image:
+          type: string
+          format: uri
+          nullable: true
+      required:
+      - id
+      - profile_image
+    RoleEnum:
+      enum:
+      - student
+      - company
+      - admin
+      type: string
+    Skill:
+      type: object
+      description: Simple skill — used in chips UI.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+      required:
+      - id
+      - name
+    StatusA6fEnum:
+      enum:
+      - open
+      - closed
+      type: string
+    StatusEd1Enum:
+      enum:
+      - pending
+      - accepted_by_company
+      - validated
+      - rejected
+      type: string
+    StudentDocumentList:
+      type: object
+      description: Lists the generated documents for a student.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        application_id:
+          type: integer
+          readOnly: true
+        offer_title:
+          type: string
+          readOnly: true
+        company_name:
+          type: string
+          readOnly: true
+        generated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - application_id
+      - company_name
+      - generated_at
+      - id
+      - offer_title
+    StudentOfferDetail:
+      type: object
+      description: |-
+        Full offer detail shown when a student clicks on an offer.
+        Includes everything including description and photo.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        company_name:
+          type: string
+          readOnly: true
+        company_logo:
+          type: string
+          format: uri
+          readOnly: true
+        company_wilaya:
+          type: string
+          readOnly: true
+        company_website:
+          type: string
+          format: uri
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        location:
+          type: string
+          maxLength: 255
+        wilaya:
+          oneOf:
+          - $ref: '#/components/schemas/WilayaEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        salary_per_week:
+          type: string
+          format: decimal
+          pattern: ^\d{0,8}(\.\d{0,2})?$
+          nullable: true
+        duration_display:
+          type: string
+          readOnly: true
+        required_skills:
+          type: string
+          readOnly: true
+        photo:
+          type: string
+          format: uri
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StatusA6fEnum'
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        already_applied:
+          type: string
+          readOnly: true
+      required:
+      - already_applied
+      - company_logo
+      - company_name
+      - company_website
+      - company_wilaya
+      - created_at
+      - description
+      - duration_display
+      - end_date
+      - id
+      - location
+      - required_skills
+      - start_date
+      - title
+    StudentOfferList:
+      type: object
+      description: |-
+        Compact offer card shown in the search/list page.
+        Shows key info without the full description.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        company_name:
+          type: string
+          readOnly: true
+        company_logo:
+          type: string
+          format: uri
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        wilaya:
+          oneOf:
+          - $ref: '#/components/schemas/WilayaEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        salary_per_week:
+          type: string
+          format: decimal
+          pattern: ^\d{0,8}(\.\d{0,2})?$
+          nullable: true
+        duration_display:
+          type: string
+          readOnly: true
+        required_skills:
+          type: string
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/StatusA6fEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - company_logo
+      - company_name
+      - created_at
+      - duration_display
+      - id
+      - required_skills
+      - title
+    StudentProfile:
+      type: object
+      description: |-
+        Student profile shown to the company when reviewing applicants.
+        Shows name, contact, skills — enough to evaluate the candidate.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        full_name:
+          type: string
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        wilaya:
+          $ref: '#/components/schemas/WilayaEnum'
+        github_link:
+          type: string
+          format: uri
+          maxLength: 255
+        portfolio_link:
+          type: string
+          format: uri
+          maxLength: 255
+        profile_image:
+          type: string
+          format: uri
+          readOnly: true
+        skills:
+          type: string
+          readOnly: true
+      required:
+      - email
+      - full_name
+      - id
+      - profile_image
+      - skills
+      - wilaya
+    StudentRegister:
+      type: object
+      description: Serializer for registering a new student.
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        full_name:
+          type: string
+          maxLength: 255
+        wilaya:
+          $ref: '#/components/schemas/WilayaEnum'
+        github_link:
+          type: string
+          format: uri
+          maxLength: 255
+        portfolio_link:
+          type: string
+          format: uri
+          maxLength: 255
+      required:
+      - email
+      - full_name
+      - wilaya
+    StudentRegisterRequest:
+      type: object
+      description: Serializer for registering a new student.
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        password:
+          type: string
+          writeOnly: true
+          minLength: 5
+        full_name:
+          type: string
+          maxLength: 255
+        wilaya:
+          $ref: '#/components/schemas/WilayaEnum'
+        github_link:
+          type: string
+          format: uri
+          maxLength: 255
+        portfolio_link:
+          type: string
+          format: uri
+          maxLength: 255
+      required:
+      - email
+      - full_name
+      - password
+      - wilaya
+    StudentSkill:
+      type: object
+      description: A skill chip on the student's profile.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        skill:
+          allOf:
+          - $ref: '#/components/schemas/Skill'
+          readOnly: true
+      required:
+      - id
+      - skill
+    StudentUpdate:
+      type: object
+      description: Serializer for updating student profile fields.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        full_name:
+          type: string
+          maxLength: 255
+        wilaya:
+          $ref: '#/components/schemas/WilayaEnum'
+        github_link:
+          type: string
+          format: uri
+          maxLength: 255
+        portfolio_link:
+          type: string
+          format: uri
+          maxLength: 255
+      required:
+      - email
+      - id
+    TokenObtainPair:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - refresh
+    TokenObtainPairRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - password
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+      required:
+      - access
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - refresh
+    TypeEnum:
+      enum:
+      - paid
+      - unpaid
+      type: string
+    UserDetail:
+      type: object
+      description: Serializer for the authenticated user detail (GET /me).
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          readOnly: true
+        is_active:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - email
+      - id
+      - is_active
+      - role
+    UserDetailRequest:
+      type: object
+      description: Serializer for the authenticated user detail (GET /me).
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+      required:
+      - email
+    WilayaEnum:
+      enum:
+      - 01 - Adrar
+      - 02 - Chlef
+      - 03 - Laghouat
+      - 04 - Oum El Bouaghi
+      - 05 - Batna
+      - 06 - Béjaïa
+      - 07 - Biskra
+      - 08 - Béchar
+      - 09 - Blida
+      - 10 - Bouira
+      - 11 - Tamanrasset
+      - 12 - Tébessa
+      - 13 - Tlemcen
+      - 14 - Tiaret
+      - 15 - Tizi Ouzou
+      - 16 - Alger
+      - 17 - Djelfa
+      - 18 - Jijel
+      - 19 - Sétif
+      - 20 - Saïda
+      - 21 - Skikda
+      - 22 - Sidi Bel Abbès
+      - 23 - Annaba
+      - 24 - Guelma
+      - 25 - Constantine
+      - 26 - Médéa
+      - 27 - Mostaganem
+      - 28 - M'Sila
+      - 29 - Mascara
+      - 30 - Ouargla
+      - 31 - Oran
+      - 32 - El Bayadh
+      - 33 - Illizi
+      - 34 - Bordj Bou Arréridj
+      - 35 - Boumerdès
+      - 36 - El Tarf
+      - 37 - Tindouf
+      - 38 - Tissemsilt
+      - 39 - El Oued
+      - 40 - Khenchela
+      - 41 - Souk Ahras
+      - 42 - Tipaza
+      - 43 - Mila
+      - 44 - Aïn Defla
+      - 45 - Naâma
+      - 46 - Aïn Témouchent
+      - 47 - Ghardaïa
+      - 48 - Relizane
+      - 49 - El M'Ghair
+      - 50 - El Menia
+      - 51 - Ouled Djellal
+      - 52 - Bordj Badji Mokhtar
+      - 53 - Béni Abbès
+      - 54 - Timimoun
+      - 55 - Touggourt
+      - 56 - Djanet
+      - 57 - In Salah
+      - 58 - In Guezzam
+      type: string
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Bearer
+tags:
+- name: Auth
+  description: Authentication (JWT tokens)
+- name: Student
+  description: Student registration & profile
+- name: Company
+  description: Company registration & logo
+- name: Account
+  description: Manage authenticated user
+- name: Admin
+  description: Admin-only operations
+- name: Skills
+  description: Skills list & student skill management
+- name: Company Offers
+  description: Internship offer management for companies
+- name: Company Applicants
+  description: View and manage student applications
+- name: Notifications
+  description: Notifications for all users

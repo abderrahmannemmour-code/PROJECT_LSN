@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from drf_spectacular.utils import extend_schema
+from drf_spectacular.types import OpenApiTypes
 
 from core.models import Admin, Internship, Notification
 from administration.serializers import (
@@ -73,6 +74,7 @@ class MarkNotificationReadView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
 
+    @extend_schema(request=None, responses={200: NotificationSerializer, 404: OpenApiTypes.OBJECT})
     def patch(self, request, pk):
         try:
             notification = Notification.objects.get(
@@ -126,6 +128,7 @@ class DownloadInternshipAgreementView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser, IsAdminOfSameUniversity]
 
+    @extend_schema(responses={200: OpenApiTypes.BINARY, 404: OpenApiTypes.OBJECT})
     def get(self, request, pk):
         try:
             internship = Internship.objects.select_related(
@@ -165,6 +168,7 @@ class ValidateInternshipView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser, IsAdminOfSameUniversity]
 
+    @extend_schema(request=None, responses={200: AdminInternshipSerializer, 400: OpenApiTypes.OBJECT})
     def patch(self, request, pk):
         try:
             internship = Internship.objects.select_related(
@@ -228,6 +232,7 @@ class RejectInternshipView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser, IsAdminOfSameUniversity]
 
+    @extend_schema(request=None, responses={200: AdminInternshipSerializer, 400: OpenApiTypes.OBJECT})
     def patch(self, request, pk):
         try:
             internship = Internship.objects.select_related(
@@ -282,6 +287,7 @@ class StatisticsSummaryView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
 
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request):
         admin = _get_admin(request)
         students_qs = admin.university.students.all()
@@ -328,6 +334,7 @@ class StatisticsCompaniesView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
 
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request):
         rows = _get_university_internships(request).values(
             'company_id', 'company__name',
@@ -363,6 +370,7 @@ class StatisticsWilayasView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
 
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request):
         source = request.query_params.get('source', 'student')
         internships_qs = _get_university_internships(request)
@@ -397,6 +405,7 @@ class StatisticsTrendsView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
 
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request):
         period = request.query_params.get('period', 'monthly')
         internships_qs = _get_university_internships(request)
@@ -448,6 +457,7 @@ class StatisticsAgreementsView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
 
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request):
         internships_qs = _get_university_internships(request)
         totals = internships_qs.aggregate(
@@ -475,6 +485,7 @@ class StatisticsStatusesView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
 
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request):
         statuses = _get_university_internships(request).aggregate(
             pending=Count('id', filter=Q(status=Internship.Status.PENDING)),
@@ -494,6 +505,7 @@ class StatisticsStudentsView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
 
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request):
         admin = _get_admin(request)
         students_qs = admin.university.students.all()
@@ -521,6 +533,7 @@ class StatisticsCompanyDetailView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
 
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request, company_id):
         internships_qs = _get_university_internships(request)
         company_qs = internships_qs.filter(company_id=company_id)
@@ -571,46 +584,5 @@ class StatisticsCompanyDetailView(APIView):
         return Response(stats, status=status.HTTP_200_OK)
 
 
-@extend_schema(tags=['Administration - Statistics'])
-class StatisticsAtRiskView(APIView):
-    """Pending internships near deadline to help early intervention."""
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAdminUser]
 
-    def get(self, request):
-        days = request.query_params.get('days', '14')
-        try:
-            days = int(days)
-        except (TypeError, ValueError):
-            days = 14
-
-        today = timezone.now().date()
-        threshold = today + timedelta(days=days)
-
-        at_risk_qs = _get_university_internships(request).filter(
-            status=Internship.Status.PENDING,
-            end_date__gte=today,
-            end_date__lte=threshold,
-        ).select_related('student', 'company').order_by('end_date')
-
-        data = [
-            {
-                'internship_id': internship.id,
-                'student_name': internship.student.full_name,
-                'company_name': internship.company.name,
-                'subject': internship.subject,
-                'end_date': internship.end_date.isoformat(),
-                'days_until_deadline': (internship.end_date - today).days,
-            }
-            for internship in at_risk_qs
-        ]
-
-        return Response(
-            {
-                'window_days': days,
-                'count': len(data),
-                'internships': data,
-            },
-            status=status.HTTP_200_OK,
-        )
 

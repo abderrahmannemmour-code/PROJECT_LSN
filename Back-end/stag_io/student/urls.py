@@ -59,4 +59,10 @@ urlpatterns = [
         views.DownloadAgreementView.as_view(),
         name='application-document',
     ),
+    # Documents
+    path(
+        'documents/',
+        views.MyDocumentListView.as_view(),
+        name='document-list',
+    ),
 ]

@@ -219,6 +219,8 @@ class ApplicationDetailSerializer(serializers.ModelSerializer):
             'id',
             'offer_title',
             'offer_description',
+            'subject',
+            'description',
             'company_name',
             'company_logo',
             'wilaya',
@@ -232,4 +234,23 @@ class ApplicationDetailSerializer(serializers.ModelSerializer):
             'agreement_available',
             'created_at',
             'updated_at',
+        ]
+
+
+class StudentDocumentListSerializer(serializers.ModelSerializer):
+    """
+    Lists the generated documents for a student.
+    """
+    offer_title = serializers.CharField(source='internship.offer.title', read_only=True)
+    company_name = serializers.CharField(source='internship.company.name', read_only=True)
+    application_id = serializers.IntegerField(source='internship.id', read_only=True)
+
+    class Meta:
+        model = InternshipAgreement
+        fields = [
+            'id',
+            'application_id',
+            'offer_title',
+            'company_name',
+            'generated_at',
         ]
