@@ -1,6 +1,5 @@
 """Serializers for the administration API."""
 from rest_framework import serializers
-
 from core.models import Internship, InternshipAgreement, Notification
 
 
@@ -59,7 +58,7 @@ class AdminInternshipDetailSerializer(AdminInternshipSerializer):
 
 
 class NotificationSerializer(serializers.ModelSerializer):
-    """Serializer for admin notifications."""
+    """Universal notification serializer for all actors."""
     internship_id = serializers.IntegerField(
         source='internship.id', read_only=True,
     )
@@ -83,6 +82,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             'internship_id',
             'notification_type',
             'message',
+            'link',
             'student_name',
             'company_name',
             'internship_subject',
@@ -91,5 +91,6 @@ class NotificationSerializer(serializers.ModelSerializer):
             'created_at',
         ]
         read_only_fields = [
-            'id', 'notification_type', 'message', 'created_at',
+            'id', 'notification_type', 'message',
+            'link', 'created_at',
         ]

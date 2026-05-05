@@ -30,7 +30,6 @@ STATISTICS_TRENDS_URL = reverse('administration:statistics-trends')
 STATISTICS_AGREEMENTS_URL = reverse('administration:statistics-agreements')
 STATISTICS_STATUSES_URL = reverse('administration:statistics-statuses')
 STATISTICS_STUDENTS_URL = reverse('administration:statistics-students')
-STATISTICS_AT_RISK_URL = reverse('administration:statistics-at-risk')
 
 
 def internship_detail_url(internship_id):
@@ -522,9 +521,6 @@ class PublicStatisticsApiTests(TestCase):
         res = self.client.get(STATISTICS_STUDENTS_URL)
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_statistics_at_risk_requires_auth(self):
-        res = self.client.get(STATISTICS_AT_RISK_URL)
-        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
 class NonAdminStatisticsAccessTests(TestCase):
@@ -554,30 +550,30 @@ class AdminStatisticsTests(TestCase):
             self.university,
             email='student1@example.com',
             full_name='Student One',
-            wilaya='Algiers',
+            wilaya='16 - Alger',
         )
         self.student_2 = create_student(
             self.university,
             email='student2@example.com',
             full_name='Student Two',
-            wilaya='Oran',
+            wilaya='31 - Oran',
         )
         self.student_3 = create_student(
             self.university,
             email='student3@example.com',
             full_name='Student Three',
-            wilaya='Constantine',
+            wilaya='25 - Constantine',
         )
 
         self.company_1 = create_company(
             email='company1@example.com',
             name='Company One',
-            wilaya='Blida',
+            wilaya='09 - Blida',
         )
         self.company_2 = create_company(
             email='company2@example.com',
             name='Company Two',
-            wilaya='Setif',
+            wilaya='19 - Sétif',
         )
 
         today = timezone.now().date()
@@ -683,8 +679,8 @@ class AdminStatisticsTests(TestCase):
             row['wilaya']: row['internships_count']
             for row in res.data['distribution']
         }
-        self.assertEqual(by_name['Algiers'], 2)
-        self.assertEqual(by_name['Oran'], 2)
+        self.assertEqual(by_name['16 - Alger'], 2)
+        self.assertEqual(by_name['31 - Oran'], 2)
 
     def test_statistics_wilayas_company_source(self):
         res = self.client.get(STATISTICS_WILAYAS_URL, {'source': 'company'})
@@ -695,8 +691,8 @@ class AdminStatisticsTests(TestCase):
             row['wilaya']: row['internships_count']
             for row in res.data['distribution']
         }
-        self.assertEqual(by_name['Blida'], 2)
-        self.assertEqual(by_name['Setif'], 2)
+        self.assertEqual(by_name['09 - Blida'], 2)
+        self.assertEqual(by_name['19 - Sétif'], 2)
 
     def test_statistics_trends_monthly(self):
         res = self.client.get(STATISTICS_TRENDS_URL)
@@ -767,18 +763,5 @@ class AdminStatisticsTests(TestCase):
         )
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_statistics_at_risk(self):
-        res = self.client.get(STATISTICS_AT_RISK_URL)
 
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data['window_days'], 14)
-        self.assertEqual(res.data['count'], 1)
-        self.assertEqual(res.data['internships'][0]['internship_id'], self.internship_pending.id)
-
-    def test_statistics_at_risk_custom_window(self):
-        res = self.client.get(STATISTICS_AT_RISK_URL, {'days': 3})
-
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data['window_days'], 3)
-        self.assertEqual(res.data['count'], 0)
 

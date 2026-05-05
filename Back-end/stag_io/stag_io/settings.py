@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'core',
     'user',
     'administration',
+    'student',
+    'company',
     'rest_framework',
     'drf_spectacular',
 ]
@@ -81,11 +83,12 @@ WSGI_APPLICATION = 'stag_io.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE':'django.db.backends.postgresql',
-        'HOST': os.environ.get('DB_HOST'),
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASS'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'HOST': os.environ.get('DB_HOST', 'db'),
+        'NAME': os.environ.get('DB_NAME', 'devdb'),
+        'USER': os.environ.get('DB_USER', 'devuser'),
+        'PASSWORD': os.environ.get('DB_PASS', 'changeme'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
@@ -160,6 +163,10 @@ SPECTACULAR_SETTINGS = {
         {'name': 'Company', 'description': 'Company registration & logo'},
         {'name': 'Account', 'description': 'Manage authenticated user'},
         {'name': 'Admin', 'description': 'Admin-only operations'},
+        {'name': 'Skills', 'description': 'Skills list & student skill management'},
+        {'name': 'Company Offers', 'description': 'Internship offer management for companies'},
+        {'name': 'Company Applicants', 'description': 'View and manage student applications'},
+        {'name': 'Notifications', 'description': 'Notifications for all users'},
     ],
 }
 

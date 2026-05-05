@@ -89,9 +89,5 @@ urlpatterns = [
         views.StatisticsCompanyDetailView.as_view(),
         name='statistics-company-detail',
     ),
-    path(
-        'statistics/at-risk/',
-        views.StatisticsAtRiskView.as_view(),
-        name='statistics-at-risk',
-    ),
 ]
+
