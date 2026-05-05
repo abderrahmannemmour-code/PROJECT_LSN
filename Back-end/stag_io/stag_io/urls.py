@@ -36,6 +36,8 @@ urlpatterns = [
     path('api/student/', include('student.urls')),
 
     path('api/company/', include('company.urls')),
+
+    path('api/notifications/', include('core.urls')),
 ]
 
 if settings.DEBUG:

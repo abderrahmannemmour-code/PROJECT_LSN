@@ -335,18 +335,34 @@ class InternshipOffer(models.Model):
 
 
 class Notification(models.Model):
-    """Notification sent to an admin when an internship needs attention."""
+    """
+    Notification system for all three actors.
+    recipient is a base User so students, companies and admins
+    can all receive notifications.
+    """
 
     class Type(models.TextChoices):
+        # Student notifications
+        APPLICATION_SUBMITTED = 'application_submitted', 'Application Submitted'
+        APPLICATION_ACCEPTED = 'application_accepted', 'Application Accepted by Company'
+        APPLICATION_REJECTED = 'application_rejected', 'Application Rejected by Company'
+        INTERNSHIP_VALIDATED = 'internship_validated', 'Internship Validated by Admin'
+        # Company notifications
+        NEW_APPLICANT = 'new_applicant', 'New Student Applied'
+        AGREEMENT_READY = 'agreement_ready', 'Agreement Ready'
+        ADMIN_REJECTED = 'admin_rejected', 'Internship Rejected by Admin'
+        # Admin notifications
         INTERNSHIP_ACCEPTED = 'internship_accepted', 'Internship Accepted by Company'
-        INTERNSHIP_VALIDATED = 'internship_validated', 'Internship Validated'
-        INTERNSHIP_REJECTED = 'internship_rejected', 'Internship Rejected'
 
     recipient = models.ForeignKey(
-        Admin, on_delete=models.CASCADE, related_name='notifications',
+        User,
+        on_delete=models.CASCADE,
+        related_name='notifications',
     )
     internship = models.ForeignKey(
-        Internship, on_delete=models.CASCADE, related_name='notifications',
+        Internship,
+        on_delete=models.CASCADE,
+        related_name='notifications',
     )
     notification_type = models.CharField(
         max_length=30,
@@ -354,6 +370,8 @@ class Notification(models.Model):
     )
     message = models.TextField()
     is_read = models.BooleanField(default=False)
+    # Optional deep link — frontend uses this to navigate on click
+    link = models.CharField(max_length=500, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

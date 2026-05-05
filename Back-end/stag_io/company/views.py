@@ -6,7 +6,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from core.models import Company, InternshipOffer, Internship, Notification, Admin
+from core.models import Company, InternshipOffer, Internship
+from core.notifications import (
+    notify_admins_internship_accepted,
+    notify_student_accepted,
+    notify_student_rejected,
+)
 from company.serializers import (
     InternshipOfferSerializer,
     CreateInternshipOfferSerializer,
@@ -142,7 +147,6 @@ class OfferApplicantListView(generics.ListAPIView):
     """
     GET /api/company/offers/<id>/applicants/
     List all students who applied to one of this company's offers.
-    Shows applicant profile info and their current application status.
     """
     serializer_class = ApplicantSerializer
     authentication_classes = [JWTAuthentication]
@@ -151,13 +155,10 @@ class OfferApplicantListView(generics.ListAPIView):
     def get_queryset(self):
         company = get_company(self.request)
         offer_id = self.kwargs['pk']
-
-        # Make sure the offer belongs to this company
         try:
             offer = InternshipOffer.objects.get(pk=offer_id, company=company)
         except InternshipOffer.DoesNotExist:
             return Internship.objects.none()
-
         return Internship.objects.filter(
             offer=offer,
         ).select_related(
@@ -171,15 +172,13 @@ class OfferApplicantListView(generics.ListAPIView):
 class AcceptApplicantView(APIView):
     """
     POST /api/company/applications/<id>/accept/
-    Company accepts a student's application.
+    Company accepts a student. Notifies student and all university admins.
     """
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsCompany]
 
     def post(self, request, pk):
         company = get_company(request)
-
-        # 1. Get the application and verify it belongs to this company
         try:
             application = Internship.objects.select_related(
                 'student', 'student__university', 'company', 'offer',
@@ -190,7 +189,6 @@ class AcceptApplicantView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # 2. Can only accept pending applications
         if application.status != Internship.Status.PENDING:
             return Response(
                 {
@@ -202,64 +200,35 @@ class AcceptApplicantView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # 3. Update status
         application.status = Internship.Status.ACCEPTED_BY_COMPANY
         application.save()
 
-        # 5. Send notification to all admins of the student's university
-        #    so they can validate or reject the internship
-        self._notify_admins(application)
+        # Notify student they were accepted
+        notify_student_accepted(application)
+        # Notify all admins of the student's university
+        notify_admins_internship_accepted(application)
 
         return Response(
             {
-                'detail': 'Application accepted successfully. '
-                          'The university has been notified.',
+                'detail': 'Application accepted. Student and university notified.',
                 'application_id': application.id,
                 'status': application.status,
             },
             status=status.HTTP_200_OK,
         )
 
-    def _notify_admins(self, application):
-        """
-        Create a Notification for every admin in the student's university.
-        If the student has no university set, no notification is sent
-        (edge case — shouldn't happen in production).
-        """
-        university = application.student.university
-        if not university:
-            return
-
-        admins = Admin.objects.filter(university=university)
-        for admin in admins:
-            Notification.objects.create(
-                recipient=admin,
-                internship=application,
-                notification_type=Notification.Type.INTERNSHIP_ACCEPTED,
-                message=(
-                    f'{application.student.full_name} has been accepted by '
-                    f'{application.company.name} for the internship: '
-                    f'"{application.subject}". '
-                    f'Please review and validate or reject this internship.'
-                ),
-            )
-
 
 @extend_schema(tags=['Company Applicants'])
 class RejectApplicantView(APIView):
     """
     POST /api/company/applications/<id>/reject/
-    Company rejects a student's application.
-
-    Only pending applications can be rejected.
-    The offer stays open so other students can still apply.
+    Company rejects a student's application. Notifies the student.
     """
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsCompany]
 
     def post(self, request, pk):
         company = get_company(request)
-
         try:
             application = Internship.objects.select_related(
                 'student', 'company', 'offer',
@@ -284,9 +253,12 @@ class RejectApplicantView(APIView):
         application.status = Internship.Status.REJECTED
         application.save()
 
+        # Notify student they were rejected
+        notify_student_rejected(application)
+
         return Response(
             {
-                'detail': 'Application rejected.',
+                'detail': 'Application rejected. Student has been notified.',
                 'application_id': application.id,
                 'status': application.status,
             },

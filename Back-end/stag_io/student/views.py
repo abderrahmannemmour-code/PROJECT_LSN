@@ -320,6 +320,14 @@ class ApplyToOfferView(APIView):
             status=Internship.Status.PENDING,
         )
 
+        # Notify student their application was submitted
+        from core.notifications import (
+            notify_student_application_submitted,
+            notify_company_new_applicant,
+        )
+        notify_student_application_submitted(application)
+        notify_company_new_applicant(application)
+
         return Response(
             {
                 'detail': 'Application submitted successfully.',

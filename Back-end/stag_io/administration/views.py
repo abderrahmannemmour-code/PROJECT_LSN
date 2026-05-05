@@ -202,6 +202,15 @@ class ValidateInternshipView(APIView):
                 {'detail': str(error)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        
+        
+        # Notify student and company that internship is validated
+        from core.notifications import (
+            notify_student_validated,
+            notify_company_agreement_ready,
+        )
+        notify_student_validated(internship)
+        notify_company_agreement_ready(internship)
 
         # Mark related notifications as read
         Notification.objects.filter(
@@ -249,6 +258,10 @@ class RejectInternshipView(APIView):
 
         internship.status = Internship.Status.REJECTED
         internship.save()
+
+        # Notify company that admin rejected the internship
+        from core.notifications import notify_company_admin_rejected
+        notify_company_admin_rejected(internship)
 
         # Mark related notifications as read
         Notification.objects.filter(
