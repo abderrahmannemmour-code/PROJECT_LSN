@@ -258,11 +258,13 @@ class StudentProfileUpdateTests(TestCase):
         res = self.client.patch(STUDENT_UPDATE_URL, {
             'full_name': 'Updated Name',
             'wilaya': '25 - Constantine',
+            'date_of_birth': '2000-01-01',
         })
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.student.refresh_from_db()
         self.assertEqual(self.student.full_name, 'Updated Name')
         self.assertEqual(self.student.wilaya, '25 - Constantine')
+        self.assertEqual(str(self.student.date_of_birth), '2000-01-01')
 
     def test_company_cannot_access_student_profile(self):
         company = create_company(email='co2@test.com')

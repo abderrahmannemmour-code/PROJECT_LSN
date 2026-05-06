@@ -65,4 +65,15 @@ urlpatterns = [
         views.MyDocumentListView.as_view(),
         name='document-list',
     ),
+    # Digital CV
+    path(
+        'universities/',
+        views.UniversityListView.as_view(),
+        name='university-list',
+    ),
+    path(
+        'me/cv/',
+        views.DigitalCVView.as_view(),
+        name='digital-cv',
+    ),
 ]

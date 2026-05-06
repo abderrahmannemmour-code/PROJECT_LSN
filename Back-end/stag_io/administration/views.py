@@ -119,6 +119,8 @@ class InternshipDetailView(generics.RetrieveAPIView):
     def get_queryset(self):
         return Internship.objects.select_related(
             'student', 'student__university', 'company', 'agreement',
+        ).prefetch_related(
+            'student__student_skills__skill',
         )
 
 
