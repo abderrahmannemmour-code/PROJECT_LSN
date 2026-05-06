@@ -1,6 +1,6 @@
 """Serializers for the administration API."""
 from rest_framework import serializers
-from core.models import Internship, InternshipAgreement, Notification
+from core.models import Internship, InternshipAgreement, Notification, Student
 
 
 class InternshipAgreementSerializer(serializers.ModelSerializer):
@@ -11,6 +11,42 @@ class InternshipAgreementSerializer(serializers.ModelSerializer):
         model = InternshipAgreement
         fields = ['id', 'pdf_url', 'generated_at']
         read_only_fields = fields
+
+
+class StudentDigitalCVForAdminSerializer(serializers.ModelSerializer):
+    """
+    Student Digital CV shown to admin when reviewing internship applications.
+    Includes personal info, academic/professional details, and skills.
+    """
+    skills = serializers.SerializerMethodField()
+    university_name = serializers.CharField(
+        source='university.name', read_only=True, default=None,
+    )
+    profile_image = serializers.ImageField(read_only=True)
+
+    def get_skills(self, obj):
+        student_skills = obj.student_skills.select_related('skill').all()
+        return [
+            {'id': ss.skill.id, 'name': ss.skill.name}
+            for ss in student_skills
+        ]
+
+    class Meta:
+        model = Student
+        fields = [
+            'id',
+            'full_name',
+            'email',
+            'wilaya',
+            'date_of_birth',
+            'profile_image',
+            'university_name',
+            'academic_year',
+            'professional_summary',
+            'github_link',
+            'portfolio_link',
+            'skills',
+        ]
 
 
 class AdminInternshipSerializer(serializers.ModelSerializer):
@@ -50,11 +86,16 @@ class AdminInternshipSerializer(serializers.ModelSerializer):
 
 
 class AdminInternshipDetailSerializer(AdminInternshipSerializer):
-    """Detailed internship serializer with agreement metadata."""
+    """Detailed internship serializer with agreement and student Digital CV."""
     agreement = InternshipAgreementSerializer(read_only=True)
+    student_cv = StudentDigitalCVForAdminSerializer(
+        source='student', read_only=True,
+    )
 
     class Meta(AdminInternshipSerializer.Meta):
-        fields = AdminInternshipSerializer.Meta.fields + ['agreement']
+        fields = AdminInternshipSerializer.Meta.fields + [
+            'agreement', 'student_cv',
+        ]
 
 
 class NotificationSerializer(serializers.ModelSerializer):

@@ -143,16 +143,34 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Student(User):
     """Student user — inherits all User fields directly."""
 
+    class AcademicYear(models.TextChoices):
+        YEAR_1 = 'year_1', 'Year 1 (License 1)'
+        YEAR_2 = 'year_2', 'Year 2 (License 2)'
+        YEAR_3 = 'year_3', 'Year 3 (License 3)'
+        YEAR_4 = 'year_4', 'Year 4 (Master 1)'
+        YEAR_5 = 'year_5', 'Year 5 (Master 2)'
+        DOCTORATE = 'doctorate', 'Doctorate'
+
     university = models.ForeignKey(
         University, on_delete=models.CASCADE,
         related_name='students', null=True, blank=True,
     )
     full_name = models.CharField(max_length=255)
     wilaya = models.CharField(max_length=100, choices=ALGERIAN_WILAYAS)
+    date_of_birth = models.DateField(null=True, blank=True)
     github_link = models.URLField(max_length=255, blank=True)
     portfolio_link = models.URLField(max_length=255, blank=True)
     profile_image = models.ImageField(
         null=True, blank=True, upload_to=profile_image_file_path,
+    )
+    academic_year = models.CharField(
+        max_length=10,
+        choices=AcademicYear.choices,
+        blank=True,
+    )
+    professional_summary = models.TextField(
+        blank=True,
+        help_text='Short professional summary for the Digital CV.',
     )
 
     class Meta:

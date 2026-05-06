@@ -19,7 +19,6 @@ class StudentRegisterSerializer(serializers.ModelSerializer):
         fields = [
             'email', 'password',
             'full_name', 'wilaya',
-            'github_link', 'portfolio_link',
         ]
 
     def validate_email(self, value):
@@ -81,21 +80,20 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
 
 class StudentUpdateSerializer(serializers.ModelSerializer):
-    """Serializer for updating student profile fields."""
+    """Serializer for updating student personal profile fields."""
 
     class Meta:
         model = Student
         fields = [
             'id', 'email',
             'full_name', 'wilaya',
-            'github_link', 'portfolio_link',
+            'date_of_birth',
         ]
         read_only_fields = ['id', 'email']
         extra_kwargs = {
             'full_name': {'required': False},
             'wilaya': {'required': False},
-            'github_link': {'required': False, 'allow_blank': True},
-            'portfolio_link': {'required': False, 'allow_blank': True},
+            'date_of_birth': {'required': False},
         }
 
 

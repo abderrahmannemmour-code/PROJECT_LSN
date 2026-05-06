@@ -22,6 +22,8 @@ ADD_SKILL_URL = reverse('student:add-skill')
 OFFER_LIST_URL = reverse('student:offer-list')
 APPLICATION_LIST_URL = reverse('student:application-list')
 DOCUMENT_LIST_URL = reverse('student:document-list')
+UNIVERSITY_LIST_URL = reverse('student:university-list')
+DIGITAL_CV_URL = reverse('student:digital-cv')
 
 
 def remove_skill_url(student_skill_id):
@@ -564,3 +566,83 @@ class StudentDocumentListTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data[0]['id'], my_agreement.id)
+
+
+# ── University List ───────────────────────────────────────────────────
+
+class UniversityListTests(TestCase):
+    """GET /api/student/universities/."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.university1 = create_university(name='Univ 1', code='U1')
+        self.university2 = create_university(name='Univ 2', code='U2')
+        self.student = create_student(self.university1)
+        self.client.force_authenticate(user=self.student)
+
+    def test_list_universities_success(self):
+        res = self.client.get(UNIVERSITY_LIST_URL)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 2)
+        # Should be ordered by name
+        self.assertEqual(res.data[0]['name'], 'Univ 1')
+        self.assertEqual(res.data[1]['name'], 'Univ 2')
+
+
+# ── Digital CV ────────────────────────────────────────────────────────
+
+class DigitalCVTests(TestCase):
+    """GET and PATCH /api/student/me/cv/."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.university = create_university()
+        self.student = create_student(
+            self.university,
+            full_name='CV Student',
+            academic_year=Student.AcademicYear.YEAR_3,
+            professional_summary='Passionate dev.',
+            github_link='https://github.com/cv',
+        )
+        self.client.force_authenticate(user=self.student)
+
+    def test_get_digital_cv(self):
+        res = self.client.get(DIGITAL_CV_URL)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['full_name'], 'CV Student')
+        self.assertEqual(res.data['academic_year'], 'year_3')
+        self.assertEqual(res.data['professional_summary'], 'Passionate dev.')
+        self.assertEqual(res.data['github_link'], 'https://github.com/cv')
+        self.assertEqual(res.data['university']['name'], self.university.name)
+        self.assertEqual(res.data['skills'], [])
+
+    def test_patch_digital_cv(self):
+        new_university = create_university(name='New Univ', code='NU')
+        payload = {
+            'academic_year': 'year_5',
+            'professional_summary': 'Updated bio.',
+            'github_link': 'https://github.com/newcv',
+            'portfolio_link': 'https://portfolio.com',
+            'university_id': new_university.id,
+        }
+        res = self.client.patch(DIGITAL_CV_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        
+        self.student.refresh_from_db()
+        self.assertEqual(self.student.academic_year, 'year_5')
+        self.assertEqual(self.student.professional_summary, 'Updated bio.')
+        self.assertEqual(self.student.github_link, 'https://github.com/newcv')
+        self.assertEqual(self.student.portfolio_link, 'https://portfolio.com')
+        self.assertEqual(self.student.university.id, new_university.id)
+
+    def test_patch_digital_cv_invalid_university(self):
+        res = self.client.patch(DIGITAL_CV_URL, {'university_id': 9999})
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('university_id', res.data)
+
+    def test_patch_digital_cv_ignores_personal_info(self):
+        """Ensure full_name cannot be changed via CV endpoint."""
+        res = self.client.patch(DIGITAL_CV_URL, {'full_name': 'Hacked Name'})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.student.refresh_from_db()
+        self.assertEqual(self.student.full_name, 'CV Student')

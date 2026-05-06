@@ -1,6 +1,9 @@
-"""Serializers for the student app — skills and internship search."""
+"""Serializers for the student app — skills, internship search, and Digital CV."""
 from rest_framework import serializers
-from core.models import InternshipOffer, OfferSkill, Internship, InternshipAgreement
+from core.models import (
+    InternshipOffer, OfferSkill, Internship, InternshipAgreement,
+    Student, University,
+)
 from student.models import Skill, StudentSkill
 
 
@@ -254,3 +257,97 @@ class StudentDocumentListSerializer(serializers.ModelSerializer):
             'company_name',
             'generated_at',
         ]
+
+
+# ── Digital CV serializers ───────────────────────────────────────────
+
+class UniversitySerializer(serializers.ModelSerializer):
+    """University info for the Digital CV dropdown."""
+    class Meta:
+        model = University
+        fields = ['id', 'name', 'code', 'wilaya']
+
+
+class DigitalCVSerializer(serializers.ModelSerializer):
+    """
+    Read-only Digital CV shown to the student, companies, and admins.
+    Combines personal profile info (read-only) with academic/professional
+    data and the student's selected skills.
+    """
+    skills = serializers.SerializerMethodField()
+    university = UniversitySerializer(read_only=True)
+    profile_image = serializers.ImageField(read_only=True)
+
+    def get_skills(self, obj):
+        student_skills = obj.student_skills.select_related('skill').all()
+        return [
+            {'id': ss.skill.id, 'name': ss.skill.name}
+            for ss in student_skills
+        ]
+
+    class Meta:
+        model = Student
+        fields = [
+            # Personal info (from profile — read-only on CV)
+            'id',
+            'full_name',
+            'email',
+            'wilaya',
+            'date_of_birth',
+            'profile_image',
+            # Academic & professional (editable on CV)
+            'university',
+            'academic_year',
+            'professional_summary',
+            'github_link',
+            'portfolio_link',
+            # Skills (managed via separate endpoints)
+            'skills',
+        ]
+        read_only_fields = fields
+
+
+class DigitalCVUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for students to update their Digital CV fields.
+    Personal info (name, email, wilaya) is managed via the profile endpoint.
+    Skills are managed via the add/remove skill endpoints.
+    """
+    university_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text='ID of the university to select from predefined list.',
+    )
+
+    class Meta:
+        model = Student
+        fields = [
+            'academic_year',
+            'professional_summary',
+            'github_link',
+            'portfolio_link',
+            'university_id',
+        ]
+        extra_kwargs = {
+            'academic_year': {'required': False, 'allow_blank': True},
+            'professional_summary': {'required': False, 'allow_blank': True},
+            'github_link': {'required': False, 'allow_blank': True},
+            'portfolio_link': {'required': False, 'allow_blank': True},
+        }
+
+    def validate_university_id(self, value):
+        if value is not None and not University.objects.filter(id=value).exists():
+            raise serializers.ValidationError('University not found.')
+        return value
+
+    def update(self, instance, validated_data):
+        university_id = validated_data.pop('university_id', None)
+        if university_id is not None:
+            instance.university_id = university_id
+        elif 'university_id' in self.initial_data and self.initial_data['university_id'] is None:
+            instance.university_id = None
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance

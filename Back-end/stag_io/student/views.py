@@ -1,4 +1,4 @@
-"""Views for the student app — skills, offer search, and applications."""
+"""Views for the student app — skills, offer search, applications, and Digital CV."""
 from django.http import FileResponse
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from core.models import Student, InternshipOffer, Internship, InternshipAgreement
+from core.models import Student, University, InternshipOffer, Internship, InternshipAgreement
 from student.models import Skill, StudentSkill
 from student.serializers import (
     SkillSerializer,
@@ -18,6 +18,9 @@ from student.serializers import (
     ApplicationListSerializer,
     ApplicationDetailSerializer,
     StudentDocumentListSerializer,
+    DigitalCVSerializer,
+    DigitalCVUpdateSerializer,
+    UniversitySerializer,
 )
 from user.views import IsStudent
 
@@ -452,3 +455,61 @@ class MyDocumentListView(generics.ListAPIView):
         return InternshipAgreement.objects.filter(
             internship__student=student,
         ).select_related('internship__offer', 'internship__company').order_by('-generated_at')
+
+
+# ── Digital CV views ─────────────────────────────────────────────────
+
+@extend_schema(tags=['Student - Digital CV'])
+class UniversityListView(generics.ListAPIView):
+    """
+    GET /api/student/universities/
+    Returns all universities predefined on the platform.
+    Used to populate the university dropdown in the Digital CV.
+    """
+    serializer_class = UniversitySerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = University.objects.all().order_by('name')
+
+
+@extend_schema(tags=['Student - Digital CV'])
+class DigitalCVView(APIView):
+    """
+    GET  /api/student/me/cv/ — View own Digital CV
+    PATCH /api/student/me/cv/ — Update Digital CV fields
+
+    The Digital CV aggregates:
+    - Personal info from profile (read-only here: name, email, wilaya, DOB, photo)
+    - Academic info (university, academic year)
+    - Professional info (summary, github, portfolio)
+    - Skills (managed via separate add/remove endpoints)
+    """
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsStudent]
+
+    @extend_schema(responses={200: DigitalCVSerializer})
+    def get(self, request):
+        student = get_student(request)
+        serializer = DigitalCVSerializer(student)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request=DigitalCVUpdateSerializer,
+        responses={200: DigitalCVSerializer},
+    )
+    def patch(self, request):
+        student = get_student(request)
+        serializer = DigitalCVUpdateSerializer(
+            student, data=request.data, partial=True,
+        )
+        if not serializer.is_valid():
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer.save()
+        # Return the full CV representation
+        return Response(
+            DigitalCVSerializer(student).data,
+            status=status.HTTP_200_OK,
+        )

@@ -291,15 +291,21 @@ class UpdateInternshipOfferSerializer(serializers.ModelSerializer):
         return instance
     
 
-class StudentProfileSerializer(serializers.ModelSerializer):
+class StudentDigitalCVSerializer(serializers.ModelSerializer):
     """
-    Student profile shown to the company when reviewing applicants.
-    Shows name, contact, skills — enough to evaluate the candidate.
+    Full Digital CV shown to the company when reviewing applicants.
+    Shows personal info, academic/professional details, and skills.
     """
     from student.models import Skill
 
     skills = serializers.SerializerMethodField()
     profile_image = serializers.ImageField(read_only=True)
+    university_name = serializers.CharField(
+        source='university.name', read_only=True, default=None,
+    )
+    university_wilaya = serializers.CharField(
+        source='university.wilaya', read_only=True, default=None,
+    )
 
     def get_skills(self, obj):
         student_skills = obj.student_skills.select_related('skill').all()
@@ -312,13 +318,21 @@ class StudentProfileSerializer(serializers.ModelSerializer):
         from core.models import Student
         model = Student
         fields = [
+            # Personal info
             'id',
             'full_name',
             'email',
             'wilaya',
+            'date_of_birth',
+            'profile_image',
+            # Academic & professional
+            'university_name',
+            'university_wilaya',
+            'academic_year',
+            'professional_summary',
             'github_link',
             'portfolio_link',
-            'profile_image',
+            # Skills
             'skills',
         ]
 
@@ -326,9 +340,9 @@ class StudentProfileSerializer(serializers.ModelSerializer):
 class ApplicantSerializer(serializers.ModelSerializer):
     """
     One applicant row shown in the company's applicants dashboard.
-    Combines the application status with the student's profile.
+    Combines the application status with the student's Digital CV.
     """
-    student = StudentProfileSerializer(read_only=True)
+    student = StudentDigitalCVSerializer(read_only=True)
     offer_title = serializers.CharField(source='offer.title', read_only=True)
 
     class Meta:

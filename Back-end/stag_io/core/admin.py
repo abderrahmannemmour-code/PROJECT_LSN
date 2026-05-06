@@ -45,12 +45,13 @@ class UserAdmin(BaseUserAdmin):
 class StudentAdmin(BaseUserAdmin):
     """Admin page for Students."""
     ordering = ['id']
-    list_display = ['email', 'full_name', 'wilaya', 'is_active']
+    list_display = ['email', 'full_name', 'wilaya', 'academic_year', 'is_active']
     search_fields = ['email', 'full_name']
-    list_filter = ['wilaya', 'is_active']
+    list_filter = ['wilaya', 'academic_year', 'is_active']
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        (_('Student Info'), {'fields': ('full_name', 'university', 'wilaya', 'github_link', 'portfolio_link', 'profile_image')}),
+        (_('Personal Info'), {'fields': ('full_name', 'wilaya', 'date_of_birth', 'profile_image')}),
+        (_('Digital CV'), {'fields': ('university', 'academic_year', 'professional_summary', 'github_link', 'portfolio_link')}),
         (_('Permissions'), {'fields': ('is_active',)}),
         (_('Important dates'), {'fields': ('last_login',)}),
     )
