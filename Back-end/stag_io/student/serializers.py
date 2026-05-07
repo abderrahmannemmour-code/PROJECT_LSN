@@ -74,6 +74,7 @@ class StudentOfferListSerializer(serializers.ModelSerializer):
             'company_logo',
             'title',
             'wilaya',
+            'is_remote',
             'type',
             'salary_per_week',
             'duration_display',
@@ -130,6 +131,7 @@ class StudentOfferDetailSerializer(serializers.ModelSerializer):
             'description',
             'location',
             'wilaya',
+            'is_remote',
             'type',
             'salary_per_week',
             'duration_display',
@@ -312,12 +314,8 @@ class DigitalCVUpdateSerializer(serializers.ModelSerializer):
     Serializer for students to update their Digital CV fields.
     Personal info (name, email, wilaya) is managed via the profile endpoint.
     Skills are managed via the add/remove skill endpoints.
+    University is auto-assigned at registration and CANNOT be changed.
     """
-    university_id = serializers.IntegerField(
-        required=False,
-        allow_null=True,
-        help_text='ID of the university to select from predefined list.',
-    )
 
     class Meta:
         model = Student
@@ -326,7 +324,6 @@ class DigitalCVUpdateSerializer(serializers.ModelSerializer):
             'professional_summary',
             'github_link',
             'portfolio_link',
-            'university_id',
         ]
         extra_kwargs = {
             'academic_year': {'required': False, 'allow_blank': True},
@@ -335,18 +332,7 @@ class DigitalCVUpdateSerializer(serializers.ModelSerializer):
             'portfolio_link': {'required': False, 'allow_blank': True},
         }
 
-    def validate_university_id(self, value):
-        if value is not None and not University.objects.filter(id=value).exists():
-            raise serializers.ValidationError('University not found.')
-        return value
-
     def update(self, instance, validated_data):
-        university_id = validated_data.pop('university_id', None)
-        if university_id is not None:
-            instance.university_id = university_id
-        elif 'university_id' in self.initial_data and self.initial_data['university_id'] is None:
-            instance.university_id = None
-
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()

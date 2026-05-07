@@ -28,7 +28,7 @@ def create_university(**params):
     return University.objects.create(**defaults)
 
 
-def create_student(university=None, **params):
+def create_student(university, **params):
     defaults = {
         'email': 'student@univ.dz',
         'password': 'testpass123',
@@ -36,11 +36,11 @@ def create_student(university=None, **params):
         'wilaya': '16 - Alger',
     }
     defaults.update(params)
-    student = Student.objects.create_user(**defaults)
-    student.university = university
-    student.role = 'student'
-    student.save()
-    return student
+    pw = defaults.pop('password')
+    s = Student(university=university, role='student', **defaults)
+    s.set_password(pw)
+    s.save()
+    return s
 
 
 def create_company(**params):
@@ -77,11 +77,18 @@ class PublicStudentRegisterTests(TestCase):
 
     def setUp(self):
         self.client = APIClient()
+        # Pre-seed a university so the email domain validation passes
+        self.university = create_university(
+            name='University Constantine 1 Mentouri',
+            code='UC1',
+            email_domain='univ-constantine1.dz',
+            wilaya='25 - Constantine',
+        )
 
     def test_register_student_success(self):
         """Valid payload creates a new student account."""
         payload = {
-            'email': 'newstudent@univ.dz',
+            'email': 'newstudent@univ-constantine1.dz',
             'password': 'strongpass123',
             'full_name': 'New Student',
             'wilaya': '31 - Oran',
@@ -96,7 +103,7 @@ class PublicStudentRegisterTests(TestCase):
     def test_register_student_duplicate_email_fails(self):
         """Registration with an already-used email returns 400."""
         payload = {
-            'email': 'dup@univ.dz',
+            'email': 'dup@univ-constantine1.dz',
             'password': 'strongpass123',
             'full_name': 'Dup Student',
             'wilaya': '16 - Alger',
@@ -113,7 +120,7 @@ class PublicStudentRegisterTests(TestCase):
 
     def test_register_student_short_password_fails(self):
         payload = {
-            'email': 'short@test.com',
+            'email': 'short@univ-constantine1.dz',
             'password': '12',
             'full_name': 'Short Pass',
             'wilaya': '16 - Alger',
