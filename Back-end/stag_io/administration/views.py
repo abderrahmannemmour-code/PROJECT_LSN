@@ -39,14 +39,16 @@ def _get_university_internships(request):
 
 @extend_schema(tags=['Administration - Notifications'])
 class NotificationListView(generics.ListAPIView):
-    """List all notifications for the authenticated admin."""
+    """List all notifications for the authenticated admin (same university only)."""
     serializer_class = NotificationSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
 
     def get_queryset(self):
+        admin = _get_admin(self.request)
         return Notification.objects.filter(
             recipient__pk=self.request.user.pk,
+            internship__student__university=admin.university,
         ).select_related(
             'internship', 'internship__student', 'internship__company',
         )
@@ -54,15 +56,17 @@ class NotificationListView(generics.ListAPIView):
 
 @extend_schema(tags=['Administration - Notifications'])
 class UnreadNotificationListView(generics.ListAPIView):
-    """List unread notifications for the authenticated admin."""
+    """List unread notifications for the authenticated admin (same university only)."""
     serializer_class = NotificationSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
 
     def get_queryset(self):
+        admin = _get_admin(self.request)
         return Notification.objects.filter(
             recipient__pk=self.request.user.pk,
             is_read=False,
+            internship__student__university=admin.university,
         ).select_related(
             'internship', 'internship__student', 'internship__company',
         )

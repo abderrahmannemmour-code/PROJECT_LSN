@@ -74,9 +74,9 @@ def create_student(university, **params):
         'wilaya': 'Algiers',
     }
     defaults.update(params)
-    student = Student.objects.create_user(**defaults)
-    student.university = university
-    student.role = 'student'
+    pw = defaults.pop('password')
+    student = Student(university=university, role='student', **defaults)
+    student.set_password(pw)
     student.save()
     return student
 
@@ -103,9 +103,9 @@ def create_admin_user(university, **params):
         'title': 'Head of Department',
     }
     defaults.update(params)
-    admin = Admin.objects.create_user(**defaults)
-    admin.university = university
-    admin.role = 'admin'
+    pw = defaults.pop('password')
+    admin = Admin(university=university, role='admin', **defaults)
+    admin.set_password(pw)
     admin.save()
     return admin
 

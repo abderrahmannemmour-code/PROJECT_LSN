@@ -145,8 +145,8 @@ class NotificationAdmin(admin.ModelAdmin):
 
 class UniversityAdmin(admin.ModelAdmin):
     """Admin page for Universities."""
-    list_display = ['name', 'code', 'wilaya']
-    search_fields = ['name', 'code', 'wilaya']
+    list_display = ['name', 'code', 'email_domain', 'wilaya']
+    search_fields = ['name', 'code', 'email_domain', 'wilaya']
     list_filter = ['wilaya']
 
 

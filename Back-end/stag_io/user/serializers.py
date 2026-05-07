@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
 
-from core.models import Student, Company
+from core.models import Student, Company, University, UNIVERSITY_EMAIL_DOMAINS
 
 
 class StudentRegisterSerializer(serializers.ModelSerializer):
@@ -22,23 +22,32 @@ class StudentRegisterSerializer(serializers.ModelSerializer):
         ]
 
     def validate_email(self, value):
-        """Ensure the student registers with a university email."""
-        allowed_domains = [
-            'univ.dz',
-            'edu.dz',
-            'etu.univ.dz',
-        ]
+        """
+        Ensure the student registers with one of the 5 predefined
+        university email domains. The university is auto-assigned.
+        """
         domain = value.split('@')[-1].lower()
-        if not any(domain == d or domain.endswith('.' + d) for d in allowed_domains):
+        if domain not in UNIVERSITY_EMAIL_DOMAINS:
+            allowed = ', '.join(
+                f'@{d}' for d in UNIVERSITY_EMAIL_DOMAINS.keys()
+            )
             raise serializers.ValidationError(
-                'Students must register with a university email '
-                f'(e.g. name@univ.dz). Allowed domains: {", ".join(allowed_domains)}'
+                f'Students must register with a university email. '
+                f'Allowed domains: {allowed}'
             )
         return value
 
     def create(self, validated_data):
-        """Create and return a student with encrypted password."""
+        """Create and return a student with encrypted password.
+        Automatically assigns the university based on email domain.
+        """
         password = validated_data.pop('password')
+        # Determine university from email domain
+        email = validated_data['email']
+        domain = email.split('@')[-1].lower()
+        uni_code = UNIVERSITY_EMAIL_DOMAINS[domain]
+        university = University.objects.get(code=uni_code)
+        validated_data['university'] = university
         student = Student(**validated_data)
         student.set_password(password)
         student.save()

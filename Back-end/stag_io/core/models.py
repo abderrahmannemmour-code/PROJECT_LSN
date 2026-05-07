@@ -9,6 +9,17 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 
+# ── Predefined university email domains ─────────────────────────────
+# Maps email domain → university code. Used for student registration
+# validation and automatic university assignment.
+UNIVERSITY_EMAIL_DOMAINS = {
+    'univ-constantine1.dz': 'UC1',
+    'univ-constantine2.dz': 'UC2',
+    'univ-constantine3.dz': 'UC3',
+    'univ-setif1.dz': 'US1',
+    'univ-usthb.dz': 'USTHB',
+}
+
 ALGERIAN_WILAYAS = [
     ('01 - Adrar', '01 - Adrar'), ('02 - Chlef', '02 - Chlef'),
     ('03 - Laghouat', '03 - Laghouat'), ('04 - Oum El Bouaghi', '04 - Oum El Bouaghi'),
@@ -73,6 +84,10 @@ class University(models.Model):
     """Represents a university institution."""
     name = models.CharField(max_length=255)
     code = models.CharField(max_length=50, unique=True)
+    email_domain = models.CharField(
+        max_length=100, unique=True, blank=True, null=True,
+        help_text='Email domain suffix for this university (e.g. univ-constantine1.dz).',
+    )
     wilaya = models.CharField(max_length=100, choices=ALGERIAN_WILAYAS)
     address = models.TextField(blank=True)
     logo = models.ImageField(
@@ -153,7 +168,7 @@ class Student(User):
 
     university = models.ForeignKey(
         University, on_delete=models.CASCADE,
-        related_name='students', null=True, blank=True,
+        related_name='students',
     )
     full_name = models.CharField(max_length=255)
     wilaya = models.CharField(max_length=100, choices=ALGERIAN_WILAYAS)
@@ -211,7 +226,7 @@ class Admin(User):
 
     university = models.ForeignKey(
         University, on_delete=models.CASCADE,
-        related_name='admins', null=True, blank=True,
+        related_name='admins',
     )
     department = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
@@ -327,6 +342,10 @@ class InternshipOffer(models.Model):
     description = models.TextField()
     location = models.CharField(max_length=255)
     wilaya = models.CharField(max_length=100, choices=ALGERIAN_WILAYAS, blank=True)
+    is_remote = models.BooleanField(
+        default=False,
+        help_text='If True, this is a remote/online internship (no location or wilaya).',
+    )
     type = models.CharField(
         max_length=10,
         choices=Type.choices,

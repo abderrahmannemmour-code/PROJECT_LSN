@@ -50,6 +50,7 @@ class InternshipOfferSerializer(serializers.ModelSerializer):
             'description',
             'location',
             'wilaya',
+            'is_remote',
             'type',
             'salary_per_week',
             'start_date',
@@ -90,6 +91,7 @@ class CreateInternshipOfferSerializer(serializers.ModelSerializer):
             'description',
             'location',
             'wilaya',
+            'is_remote',
             'type',
             'salary_per_week',
             'start_date',
@@ -101,13 +103,14 @@ class CreateInternshipOfferSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'title': {'required': True},
             'description': {'required': True},
-            'location': {'required': True},
+            'location': {'required': False, 'allow_blank': True},
             'start_date': {'required': True},
             'end_date': {'required': True},
             'type': {'required': True},
             'salary_per_week': {'required': False},
             'photo': {'required': False},
             'status': {'required': False},
+            'is_remote': {'required': False},
         }
 
     def validate_skill_ids(self, value):
@@ -128,6 +131,17 @@ class CreateInternshipOfferSerializer(serializers.ModelSerializer):
         end_date = data.get('end_date')
         offer_type = data.get('type')
         salary = data.get('salary_per_week')
+        is_remote = data.get('is_remote', False)
+
+        # Remote internship validation
+        if is_remote:
+            data['location'] = ''
+            data['wilaya'] = ''
+        else:
+            if not data.get('location'):
+                raise serializers.ValidationError(
+                    'Location is required for non-remote internships.'
+                )
 
         if start_date and end_date:
             if end_date <= start_date:
@@ -192,6 +206,7 @@ class UpdateInternshipOfferSerializer(serializers.ModelSerializer):
             'description',
             'location',
             'wilaya',
+            'is_remote',
             'type',
             'salary_per_week',
             'start_date',
@@ -203,7 +218,7 @@ class UpdateInternshipOfferSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'title': {'required': False},
             'description': {'required': False},
-            'location': {'required': False},
+            'location': {'required': False, 'allow_blank': True},
             'wilaya': {'required': False},
             'type': {'required': False},
             'salary_per_week': {'required': False},
@@ -211,6 +226,7 @@ class UpdateInternshipOfferSerializer(serializers.ModelSerializer):
             'end_date': {'required': False},
             'photo': {'required': False},
             'status': {'required': False},
+            'is_remote': {'required': False},
         }
 
     def validate_skill_ids(self, value):
@@ -237,6 +253,14 @@ class UpdateInternshipOfferSerializer(serializers.ModelSerializer):
         salary = data.get(
             'salary_per_week', getattr(instance, 'salary_per_week', None),
         )
+        is_remote = data.get(
+            'is_remote', getattr(instance, 'is_remote', False),
+        )
+
+        # Remote internship validation
+        if is_remote:
+            data['location'] = ''
+            data['wilaya'] = ''
 
         if start_date and end_date:
             if end_date <= start_date:

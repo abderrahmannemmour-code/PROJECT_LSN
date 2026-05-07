@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from core.models import Student, University, InternshipOffer, Internship, InternshipAgreement
+from core.models import Student, InternshipOffer, Internship, InternshipAgreement
 from student.models import Skill, StudentSkill
 from student.serializers import (
     SkillSerializer,
@@ -20,7 +20,6 @@ from student.serializers import (
     StudentDocumentListSerializer,
     DigitalCVSerializer,
     DigitalCVUpdateSerializer,
-    UniversitySerializer,
 )
 from user.views import IsStudent
 
@@ -135,6 +134,7 @@ class RemoveSkillView(APIView):
         OpenApiParameter('type', OpenApiTypes.STR, description='paid or unpaid'),
         OpenApiParameter('duration', OpenApiTypes.STR, description='short (14-28 days), medium (29-60 days), long (60+ days)'),
         OpenApiParameter('ordering', OpenApiTypes.STR, description='recent (default), salary_high, start_soon'),
+        OpenApiParameter('remote', OpenApiTypes.STR, description='true to show only remote internships'),
     ],
 )
 class StudentOfferListView(generics.ListAPIView):
@@ -178,6 +178,11 @@ class StudentOfferListView(generics.ListAPIView):
         wilaya = params.get('wilaya')
         if wilaya:
             queryset = queryset.filter(wilaya=wilaya)
+
+        # ── Remote filter ───────────────────────────────────────────
+        remote = params.get('remote', '').lower()
+        if remote == 'true':
+            queryset = queryset.filter(is_remote=True)
 
         # ── Skills filter (chips) ───────────────────────────────────
         # Accepts comma-separated IDs: ?skills=1,3,5
@@ -460,19 +465,6 @@ class MyDocumentListView(generics.ListAPIView):
 # ── Digital CV views ─────────────────────────────────────────────────
 
 @extend_schema(tags=['Student - Digital CV'])
-class UniversityListView(generics.ListAPIView):
-    """
-    GET /api/student/universities/
-    Returns all universities predefined on the platform.
-    Used to populate the university dropdown in the Digital CV.
-    """
-    serializer_class = UniversitySerializer
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
-    queryset = University.objects.all().order_by('name')
-
-
-@extend_schema(tags=['Student - Digital CV'])
 class DigitalCVView(APIView):
     """
     GET  /api/student/me/cv/ — View own Digital CV
@@ -480,7 +472,8 @@ class DigitalCVView(APIView):
 
     The Digital CV aggregates:
     - Personal info from profile (read-only here: name, email, wilaya, DOB, photo)
-    - Academic info (university, academic year)
+    - University (auto-assigned at registration, read-only)
+    - Academic info (academic year)
     - Professional info (summary, github, portfolio)
     - Skills (managed via separate add/remove endpoints)
     """

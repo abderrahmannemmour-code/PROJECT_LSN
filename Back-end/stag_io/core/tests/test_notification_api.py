@@ -28,7 +28,7 @@ def create_university(**params):
     return University.objects.create(**defaults)
 
 
-def create_student(university=None, **params):
+def create_student(university, **params):
     defaults = {
         'email': 'student@univ.dz',
         'password': 'testpass123',
@@ -36,9 +36,9 @@ def create_student(university=None, **params):
         'wilaya': '16 - Alger',
     }
     defaults.update(params)
-    s = Student.objects.create_user(**defaults)
-    s.university = university
-    s.role = 'student'
+    pw = defaults.pop('password')
+    s = Student(university=university, role='student', **defaults)
+    s.set_password(pw)
     s.save()
     return s
 
