@@ -1,0 +1,775 @@
+import { useState, useEffect } from 'react';
+import { 
+  FileText, 
+  CheckCircle2,
+  MoreHorizontal, 
+  TrendingUp,
+  Users,
+  Globe,
+  Zap,
+  Loader2,
+  BarChart3,
+  Clock,
+  Bell
+} from 'lucide-react';
+import { useNavigate, Routes, Route } from 'react-router-dom';
+import DashboardLayout from '../../components/DashboardLayout';
+import StatusBadge from '../../components/StatusBadge';
+import Modal from '../../components/Modal';
+import { useAuth } from '../../context/AuthContext';
+import { 
+  getAdminInternships,
+  getAdminInternshipDetails,
+  validateInternship,
+  rejectInternship,
+  downloadAdminAgreement,
+  getStatsSummary,
+  getStatsStatuses,
+  getStatsStudents,
+  getStatsTrends,
+  getAdminNotifications,
+  resetAdminData
+} from '../../api/adminApi';
+import { getMediaUrl } from '../../api/axios';
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend
+} from 'recharts';
+
+// ── OVERVIEW ──────────────────────────────────────────────────────────────────
+function OverviewView({ internships, summary, trends, statusStats, studentStats, notifications = [], handleAction, handleGeneratePDF }) {
+  const pending = internships.filter(i => i.status === 'accepted_by_company');
+  const recentNotifs = notifications.slice(0, 4);
+  const navigate = useNavigate();
+  
+  return (
+    <div className="space-y-8">
+      {/* REAL STATS GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          {
+            label: 'Total Internships',
+            value: internships.length,
+            icon: FileText,
+            color: 'text-indigo-600',
+            bg: 'bg-indigo-50',
+          },
+          {
+            label: 'Pending Validation',
+            value: pending.length,
+            icon: Clock,
+            color: 'text-amber-600',
+            bg: 'bg-amber-50',
+            urgent: pending.length > 0,
+          },
+          {
+            label: 'Validated',
+            value: internships.filter(i => i.status === 'validated').length,
+            icon: CheckCircle2,
+            color: 'text-emerald-600',
+            bg: 'bg-emerald-50',
+          },
+          {
+            label: 'Rejected',
+            value: internships.filter(i => i.status === 'rejected').length,
+            icon: BarChart3,
+            color: 'text-rose-600',
+            bg: 'bg-rose-50',
+          },
+        ].map((stat, idx) => (
+          <div key={idx} className={`bg-white p-6 rounded-3xl border shadow-sm flex flex-col justify-between ${stat.urgent ? 'border-amber-200 ring-2 ring-amber-50' : 'border-gray-200'}`}>
+            <div className="flex justify-between items-start mb-6">
+              <p className="text-[11px] font-black text-gray-500 uppercase tracking-[2px]">{stat.label}</p>
+              <div className={`w-10 h-10 ${stat.bg} rounded-full flex items-center justify-center ${stat.color} shrink-0`}>
+                <stat.icon size={20} />
+              </div>
+            </div>
+            <div>
+              <h3 className="text-4xl font-black text-gray-900 tracking-tighter">{stat.value}</h3>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* PLACEMENT RATE from real API */}
+      {summary && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm relative overflow-hidden flex flex-col justify-center">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <p className="text-[11px] font-black text-gray-500 uppercase tracking-[2px] mb-2">Placement Rate</p>
+                <h3 className="text-5xl font-black text-indigo-600 tracking-tighter">
+                  {summary.placement_rate ?? '—'}
+                  {typeof summary.placement_rate === 'number' ? '%' : ''}
+                </h3>
+              </div>
+              <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+                <TrendingUp size={28} strokeWidth={2.5} />
+              </div>
+            </div>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Students Placed</p>
+              <p className="text-xl font-black text-gray-900">{summary.placed_count ?? '—'}</p>
+            </div>
+            {typeof summary.placement_rate === 'number' && (
+              <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-indigo-600 rounded-full transition-all duration-1000" style={{ width: `${summary.placement_rate}%` }}></div>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm flex flex-col justify-center">
+            <h3 className="text-xl font-black text-gray-900 mb-6">Student Breakdown</h3>
+            <div className="space-y-4">
+              {studentStats && Object.entries(studentStats).map(([key, value]) => (
+                <div key={key} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                  <span className="text-sm font-bold text-gray-600 capitalize">{key.replace(/_/g, ' ')}</span>
+                  <span className="text-lg font-black text-gray-900">{value}</span>
+                </div>
+              ))}
+              {!studentStats && (
+                <p className="text-gray-500 font-medium text-sm">No data available.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CHARTS */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* TRENDS CHART */}
+        <div className="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm">
+          <h3 className="text-xl font-black text-gray-900 mb-6 tracking-tight">Application Trends</h3>
+          {trends && trends.length > 0 ? (
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trends} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af', fontWeight: 'bold' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af', fontWeight: 'bold' }} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '16px', border: '1px solid #f3f4f6', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
+                    itemStyle={{ color: '#111827', fontWeight: 'black' }}
+                    labelStyle={{ color: '#6b7280', fontWeight: 'bold', fontSize: '12px', marginBottom: '4px' }}
+                  />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                  <Area type="monotone" dataKey="count" stroke="#4f46e5" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" activeDot={{ r: 6, fill: '#4f46e5', stroke: '#fff', strokeWidth: 3 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-64 w-full flex items-center justify-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+              <p className="text-gray-400 font-bold text-sm">No trend data available.</p>
+            </div>
+          )}
+        </div>
+
+        {/* STATUS BREAKDOWN CHART */}
+        <div className="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm flex flex-col">
+          <h3 className="text-xl font-black text-gray-900 mb-6 tracking-tight">Status Distribution</h3>
+          {statusStats && statusStats.total > 0 ? (
+            <div className="h-64 w-full flex-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={Object.entries(statusStats)
+                      .filter(([name, value]) => name !== 'total' && value > 0)
+                      .map(([name, value]) => ({ name: name.replace(/_/g, ' '), value }))}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {Object.entries(statusStats)
+                      .filter(([name, value]) => name !== 'total' && value > 0)
+                      .map(([name], index) => {
+                      // Dynamic colors based on status name
+                      let color = '#9ca3af'; // default gray
+                      if (name.includes('validated')) color = '#10b981'; // emerald
+                      else if (name.includes('pending')) color = '#f59e0b'; // amber
+                      else if (name.includes('rejected')) color = '#e11d48'; // rose
+                      else if (name.includes('accepted')) color = '#4f46e5'; // indigo
+                      return <Cell key={`cell-${index}`} fill={color} />;
+                    })}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '16px', border: '1px solid #f3f4f6', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
+                    itemStyle={{ color: '#111827', fontWeight: 'black', textTransform: 'capitalize' }}
+                  />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={36} 
+                    iconType="circle"
+                    formatter={(value) => <span className="text-xs font-bold text-gray-600 capitalize">{value}</span>}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-64 w-full flex-1 flex items-center justify-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+              <p className="text-gray-400 font-bold text-sm">No status data available.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* RECENT NOTIFICATIONS / ACTIVITY */}
+      <div className="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-black text-gray-900 tracking-tight">Recent Activity</h3>
+          <button onClick={() => navigate('/admin/notifications')} className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline">View All</button>
+        </div>
+        <div className="space-y-4">
+          {recentNotifs.length > 0 ? recentNotifs.map((n) => (
+            <div key={n.id} className={`flex items-start gap-4 p-4 rounded-2xl transition-all ${n.is_read ? 'bg-white' : 'bg-indigo-50/50 border border-indigo-100/50'}`}>
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${n.notification_type === 'new_application' ? 'bg-blue-100 text-blue-600' : 'bg-indigo-100 text-indigo-600'}`}>
+                {n.notification_type === 'new_application' ? <Zap size={18} /> : <Bell size={18} />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm leading-relaxed ${n.is_read ? 'text-gray-600' : 'text-gray-900 font-bold'}`}>{n.message}</p>
+                <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest">
+                  {new Date(n.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                </p>
+              </div>
+            </div>
+          )) : (
+            <div className="py-8 text-center text-gray-400 font-medium text-sm border-2 border-dashed border-gray-100 rounded-2xl">
+              No recent activity.
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="pt-4">
+        <div className="flex justify-between items-center mb-6 px-2">
+          <h2 className="text-2xl font-black text-gray-900 tracking-tight">Validation Queue</h2>
+          {pending.length > 0 && (
+            <div className="bg-amber-50 text-amber-700 px-4 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-widest border border-amber-200 shadow-sm">
+              {pending.length} Pending
+            </div>
+          )}
+        </div>
+
+        {pending.length === 0 ? (
+          <div className="py-12 text-center bg-white rounded-3xl border border-gray-200 shadow-sm">
+            <CheckCircle2 size={40} className="mx-auto text-emerald-500 mb-4" />
+            <p className="font-black text-gray-900 text-xl">All caught up!</p>
+            <p className="text-gray-500 font-medium text-sm mt-1">No internships waiting for validation.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {pending.map((req) => (
+              <div 
+                key={req.id} 
+                onClick={() => handleAction(req.id, 'select')}
+                className="bg-white p-6 rounded-3xl border border-amber-200 shadow-sm hover:shadow-md transition-shadow group flex flex-col cursor-pointer"
+              >
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center font-black text-indigo-600 shrink-0 border border-indigo-100">
+                    {(req.student_name || 'S')[0]}
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="font-black text-gray-900 truncate group-hover:text-indigo-600 transition-colors">{req.offer_title || req.subject}</h4>
+                    <p className="text-[11px] font-bold text-gray-500 mt-1 truncate">{req.student_name} · {req.company_name}</p>
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-auto pt-4 border-t border-gray-100" onClick={e => e.stopPropagation()}>
+                  <button onClick={() => handleAction(req.id, 'reject')} className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 transition-colors">Reject</button>
+                  <button onClick={() => handleAction(req.id, 'approve')} className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-sm">Validate</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── INTERNSHIPS VIEW ───────────────────────────────────────────────────────────
+function InternshipsView({ internships, loading, handleAction, handleGeneratePDF }) {
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center px-2">
+        <h2 className="text-2xl font-black text-gray-900 tracking-tight">All Internships</h2>
+        <div className="bg-white px-4 py-1.5 rounded-xl border border-gray-200 shadow-sm text-[11px] font-black text-indigo-600 uppercase tracking-widest">
+          {internships.length} Total
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600" size={40} /></div>
+      ) : internships.length === 0 ? (
+        <div className="py-20 text-center bg-white rounded-3xl border border-gray-200 shadow-sm">
+          <FileText size={48} className="mx-auto text-gray-300 mb-4" />
+          <p className="font-black text-gray-900 text-xl">No internships yet</p>
+          <p className="text-gray-500 font-medium mt-2">Internships appear here once students apply and companies accept.</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full whitespace-nowrap">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50/50 text-left">
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Student</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Company / Role</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Status</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {internships.map((item) => (
+                  <tr 
+                    key={item.id} 
+                    onClick={() => handleAction(item.id, 'select')}
+                    className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center font-black text-indigo-600 text-lg shrink-0 border border-indigo-100">
+                          {item.student_image ? (
+                            <img src={getMediaUrl(item.student_image)} alt="" className="w-full h-full object-cover rounded-xl" />
+                          ) : (
+                            <span>{(item.student_name || 'S')[0]}</span>
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900 text-sm group-hover:text-indigo-600 transition-colors">{item.student_name}</p>
+                          <p className="text-[11px] text-gray-500 font-bold mt-0.5">{item.student_email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="font-bold text-gray-900 text-sm">{item.offer_title || item.subject}</p>
+                      <p className="text-[11px] font-bold text-gray-500 mt-0.5">{item.company_name}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <StatusBadge status={item.status} />
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2" onClick={e => e.stopPropagation()}>
+                        {item.status === 'accepted_by_company' && (
+                          <button onClick={() => handleAction(item.id, 'approve')} className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-sm">Validate</button>
+                        )}
+                        {item.status === 'validated' && (
+                          <button onClick={() => handleGeneratePDF(item.id)} className="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-all border border-emerald-200">PDF</button>
+                        )}
+                        <button className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"><MoreHorizontal size={18} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── MAIN ADMIN DASHBOARD ───────────────────────────────────────────────────────
+export default function AdminDashboard() {
+  const { user } = useAuth();
+  const [internships, setInternships] = useState([]);
+  const [summary, setSummary] = useState(null);
+  const [studentStats, setStudentStats] = useState(null);
+  const [trends, setTrends] = useState([]);
+  const [statusStats, setStatusStats] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedInternship, setSelectedInternship] = useState(null);
+
+  // Reset Modal State
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetting, setResetting] = useState(false);
+  const [resetError, setResetError] = useState('');
+
+  useEffect(() => { 
+    loadData(true); 
+    const interval = setInterval(() => {
+      loadData(false);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    try {
+      const [intRes, statsRes, studRes, trendsRes, statusRes, notifRes] = await Promise.allSettled([
+        getAdminInternships(),
+        getStatsSummary(),
+        getStatsStudents(),
+        getStatsTrends('monthly'),
+        getStatsStatuses(),
+        getAdminNotifications()
+      ]);
+      if (intRes.status === 'fulfilled') setInternships(intRes.value.data);
+      if (statsRes.status === 'fulfilled') setSummary(statsRes.value.data);
+      if (studRes.status === 'fulfilled') setStudentStats(studRes.value.data);
+      if (trendsRes.status === 'fulfilled') setTrends(trendsRes.value.data);
+      if (statusRes.status === 'fulfilled') setStatusStats(statusRes.value.data);
+      if (notifRes.status === 'fulfilled') setNotifications(notifRes.value.data);
+    } catch (err) {
+      console.error('Failed to load admin data', err);
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  };
+
+  const handleAction = async (id, action) => {
+    try {
+      if (action === 'select') {
+        const res = await getAdminInternshipDetails(id);
+        setSelectedInternship(res.data);
+        return;
+      }
+      if (action === 'approve') await validateInternship(id);
+      else await rejectInternship(id);
+      loadData();
+      setSelectedInternship(null);
+    } catch (err) {
+      console.error('Action failed', err);
+    }
+  };
+
+  const handleGeneratePDF = async (id) => {
+    try {
+      const res = await downloadAdminAgreement(id);
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `agreement_${id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('PDF download failed', err);
+    }
+  };
+
+  const handleResetSubmit = async (e) => {
+    e.preventDefault();
+    setResetting(true);
+    setResetError('');
+    try {
+      await resetAdminData(resetPassword);
+      setShowResetModal(false);
+      setResetPassword('');
+      loadData(true);
+    } catch (err) {
+      setResetError(err.response?.data?.detail || 'Invalid password or reset failed.');
+    } finally {
+      setResetting(false);
+    }
+  };
+
+  return (
+    <DashboardLayout role="admin">
+      <div className="p-6 md:p-8 lg:p-12 space-y-8 animate-fade-in bg-gray-50 min-h-screen pb-24">
+
+        {/* HEADER */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-8 rounded-3xl border border-gray-200 shadow-sm">
+          <div>
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight">Admin Portal</h1>
+            <p className="text-gray-500 font-medium mt-1">
+              Welcome, {user?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}. Validate internships and monitor metrics.
+            </p>
+          </div>
+          <button 
+            onClick={() => setShowResetModal(true)}
+            className="px-6 py-3 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-600 hover:text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-sm"
+          >
+            Reset Data
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-40">
+            <Loader2 className="animate-spin text-indigo-600" size={48} />
+          </div>
+        ) : (
+          <>
+            <Routes>
+              <Route path="/" element={
+                <OverviewView
+                  internships={internships}
+                  summary={summary}
+                  trends={trends}
+                  statusStats={statusStats}
+                  studentStats={studentStats}
+                  notifications={notifications}
+                  handleAction={handleAction}
+                  handleGeneratePDF={handleGeneratePDF}
+                />
+              } />
+              <Route path="/internships" element={
+                <InternshipsView
+                  internships={internships}
+                  loading={loading}
+                  handleAction={handleAction}
+                  handleGeneratePDF={handleGeneratePDF}
+                />
+              } />
+              <Route path="/applicants" element={
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center px-2">
+                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Student Records</h2>
+                  </div>
+                  <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full whitespace-nowrap">
+                        <thead>
+                          <tr className="border-b border-gray-200 bg-gray-50/50 text-left">
+                            <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Student</th>
+                            <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Status</th>
+                            <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {internships.map((item) => (
+                            <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center font-black text-indigo-600 shrink-0 border border-indigo-100">
+                                    {(item.student_name || 'S')[0]}
+                                  </div>
+                                  <div>
+                                    <p className="font-bold text-gray-900 text-sm">{item.student_name}</p>
+                                    <p className="text-[11px] text-gray-500 font-bold mt-0.5">{item.student_email}</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4"><StatusBadge status={item.status} /></td>
+                              <td className="px-6 py-4 text-right">
+                                <button className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"><MoreHorizontal size={18} /></button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              } />
+
+            </Routes>
+        {selectedInternship && (
+          <Modal title="Validation Review" wide={true} onClose={() => setSelectedInternship(null)}>
+            <div className="space-y-8 max-w-7xl mx-auto w-full">
+              <div className="flex flex-col lg:flex-row gap-8 items-start">
+                
+                {/* STUDENT PROFILE (LEFT) */}
+                <div className="flex-1 space-y-6 w-full">
+                  <div className="flex items-center gap-4 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                    <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center font-black text-indigo-600 border border-indigo-100 overflow-hidden shrink-0">
+                      {selectedInternship.student_image ? (
+                        <img src={getMediaUrl(selectedInternship.student_image)} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-2xl">{(selectedInternship.student_name || 'S')[0]}</span>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-black text-gray-900 leading-tight">{selectedInternship.student_name}</h3>
+                      <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest">{selectedInternship.student_email}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 p-6 rounded-3xl space-y-6 border border-gray-100">
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-3">Professional Bio</p>
+                      <p className="text-sm text-gray-600 font-medium leading-relaxed">
+                        {selectedInternship.student_details?.bio || 'No bio provided.'}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-2">GitHub</p>
+                        {selectedInternship.student_details?.github_link ? (
+                          <a href={selectedInternship.student_details.github_link} target="_blank" rel="noopener noreferrer" className="text-xs font-black text-indigo-600 hover:underline">View Profile ↗</a>
+                        ) : <span className="text-xs text-gray-400 italic">Not provided</span>}
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-2">Portfolio</p>
+                        {selectedInternship.student_details?.portfolio_link ? (
+                          <a href={selectedInternship.student_details.portfolio_link} target="_blank" rel="noopener noreferrer" className="text-xs font-black text-indigo-600 hover:underline">View Portfolio ↗</a>
+                        ) : <span className="text-xs text-gray-400 italic">Not provided</span>}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-3">Student Skills</p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedInternship.student_details?.skills?.length > 0 ? (
+                          selectedInternship.student_details.skills.map((s, idx) => (
+                            <span key={idx} className="px-2.5 py-1 bg-white text-indigo-600 rounded-lg font-black text-[9px] uppercase tracking-widest border border-indigo-100 shadow-sm">
+                              {s.name}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">No skills listed</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* OFFER DETAILS (RIGHT) */}
+                <div className="flex-1 space-y-6 w-full">
+                  <div className="bg-indigo-600 p-8 rounded-3xl text-white shadow-xl shadow-indigo-100 relative overflow-hidden">
+                    <div className="relative z-10">
+                      <div className="flex justify-between items-start mb-4">
+                        <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[9px] font-black uppercase tracking-widest">
+                          {selectedInternship.offer_details?.type || 'Internship'}
+                        </span>
+                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
+                          {selectedInternship.company_details?.logo ? (
+                            <img src={getMediaUrl(selectedInternship.company_details.logo)} alt="" className="w-full h-full object-cover rounded-xl" />
+                          ) : (
+                            <span className="text-indigo-600 font-black">{(selectedInternship.company_name || 'C')[0]}</span>
+                          )}
+                        </div>
+                      </div>
+                      <h4 className="text-2xl font-black tracking-tight mb-2 leading-tight">
+                        {selectedInternship.offer_title || selectedInternship.subject}
+                      </h4>
+                      <p className="text-indigo-100 text-xs font-bold flex items-center gap-2">
+                        {selectedInternship.company_name} · {selectedInternship.offer_details?.location || 'Remote'}
+                      </p>
+                    </div>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                  </div>
+
+                  <div className="space-y-6 px-2">
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-3">Offer Description</p>
+                      <p className="text-sm text-gray-600 font-medium leading-relaxed">
+                        {selectedInternship.offer_details?.description || selectedInternship.description || 'No description available.'}
+                      </p>
+                    </div>
+
+                    {selectedInternship.offer_details?.requirements && (
+                      <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-3">Requirements</p>
+                        <p className="text-xs text-gray-500 font-medium leading-relaxed whitespace-pre-wrap bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100/50">
+                          {selectedInternship.offer_details.requirements}
+                        </p>
+                      </div>
+                    )}
+
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-3">Required Skills</p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedInternship.offer_details?.skills_details?.length > 0 ? (
+                          selectedInternship.offer_details.skills_details.map((s) => (
+                            <span key={s.id} className="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg font-black text-[9px] uppercase tracking-widest border border-indigo-100">
+                              {s.name}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">No specific skills required</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ACTION BUTTONS */}
+              <div className="flex gap-4 pt-8 border-t border-gray-100">
+                {selectedInternship.status === 'accepted_by_company' && (
+                  <>
+                    <button 
+                      onClick={() => handleAction(selectedInternship.id, 'reject')} 
+                      className="flex-1 py-4 bg-white border-2 border-gray-100 text-rose-600 rounded-2xl font-black uppercase tracking-[2px] text-[11px] hover:bg-rose-50 hover:border-rose-100 transition-all active:scale-[0.98]"
+                    >
+                      Reject Application
+                    </button>
+                    <button 
+                      onClick={() => handleAction(selectedInternship.id, 'approve')} 
+                      className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-[2px] text-[11px] hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 active:scale-[0.98]"
+                    >
+                      Validate & Generate PDF
+                    </button>
+                  </>
+                )}
+                {selectedInternship.status === 'validated' && (
+                  <button 
+                    onClick={() => handleGeneratePDF(selectedInternship.id)} 
+                    className="flex-1 py-4 bg-emerald-500 text-white rounded-2xl font-black uppercase tracking-[2px] text-[11px] hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-100"
+                  >
+                    Download Convention de Stage (PDF)
+                  </button>
+                )}
+                {selectedInternship.status === 'rejected' && (
+                  <div className="w-full py-4 bg-rose-50 text-rose-600 rounded-2xl font-black uppercase tracking-[2px] text-[11px] text-center border border-rose-100">
+                    Application Rejected
+                  </div>
+                )}
+              </div>
+            </div>
+          </Modal>
+        )}
+          </>
+        )}
+        {/* RESET MODAL */}
+        {showResetModal && (
+          <div className="fixed inset-0 z-[100] bg-gray-900/40 backdrop-blur-md flex items-center justify-center p-6 animate-fade-in" onClick={() => setShowResetModal(false)}>
+            <div className="bg-white rounded-[32px] p-8 sm:p-12 max-w-md w-full shadow-2xl shadow-rose-900/10 border border-rose-50 animate-slide-up" onClick={e => e.stopPropagation()}>
+              <div className="w-20 h-20 bg-rose-50 rounded-3xl flex items-center justify-center mx-auto mb-8 text-rose-600 shadow-inner border border-rose-100/50">
+                <Globe size={36} className="text-rose-500" />
+              </div>
+              <h3 className="text-3xl font-black text-gray-900 mb-4 tracking-tight leading-none text-center">Reset Dashboard</h3>
+              <p className="text-gray-500 font-medium mb-6 leading-relaxed text-sm text-center">
+                This action will permanently delete <span className="font-bold text-rose-600">ALL platform data</span> including offers, applications, and notifications. Enter your password to confirm.
+              </p>
+              
+              <form onSubmit={handleResetSubmit} className="space-y-6">
+                <div>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Enter admin password"
+                    value={resetPassword}
+                    onChange={e => setResetPassword(e.target.value)}
+                    className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl font-bold text-gray-900 focus:bg-white focus:border-rose-500 focus:outline-none transition-all text-center"
+                  />
+                  {resetError && <p className="text-rose-500 text-xs font-bold mt-2 text-center">{resetError}</p>}
+                </div>
+                
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <button 
+                    type="button"
+                    onClick={() => setShowResetModal(false)}
+                    className="flex-1 py-4 bg-gray-50 text-gray-600 rounded-2xl font-black uppercase tracking-[2px] text-[10px] hover:bg-gray-100 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={resetting || !resetPassword}
+                    className="flex-1 py-4 bg-rose-600 text-white rounded-2xl font-black uppercase tracking-[2px] text-[10px] shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all disabled:opacity-50"
+                  >
+                    {resetting ? <Loader2 size={16} className="animate-spin mx-auto" /> : 'Confirm Wipe'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+      </div>
+    </DashboardLayout>
+  );
+}

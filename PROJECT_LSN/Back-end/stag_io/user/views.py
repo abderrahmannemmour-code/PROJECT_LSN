@@ -14,7 +14,26 @@ from user.serializers import (
     CompanyUpdateSerializer,
     LogoImageSerializer,
     ProfileImageSerializer,
+    SkillSerializer,
+    UniversitySerializer,
 )
+from core.models import Skill, University
+
+
+@extend_schema(tags=['Public'])
+class UniversityListView(generics.ListAPIView):
+    """List all available universities."""
+    queryset = University.objects.all()
+    serializer_class = UniversitySerializer
+    permission_classes = [permissions.AllowAny]
+
+
+@extend_schema(tags=['Public'])
+class SkillListView(generics.ListAPIView):
+    """List all available skills."""
+    queryset = Skill.objects.all()
+    serializer_class = SkillSerializer
+    permission_classes = [permissions.AllowAny]
 
 
 class IsAdmin(permissions.BasePermission):
@@ -95,6 +114,64 @@ class StudentUpdateView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         from core.models import Student
         return Student.objects.get(pk=self.request.user.pk)
+
+
+@extend_schema(tags=['Student'])
+class MySkillListView(generics.ListAPIView):
+    """List the authenticated student's selected skills."""
+    serializer_class = SkillSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsStudent]
+
+    def get_queryset(self):
+        from core.models import Student
+        student = Student.objects.get(pk=self.request.user.pk)
+        return student.skills.all()
+
+
+@extend_schema(tags=['Student'])
+class AddSkillView(generics.GenericAPIView):
+    """Add a skill to the authenticated student's profile."""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsStudent]
+
+    def post(self, request):
+        from core.models import Student, Skill
+        from rest_framework import status
+        from rest_framework.response import Response
+        student = Student.objects.get(pk=self.request.user.pk)
+        skill_id = request.data.get('skill_id')
+        try:
+            skill = Skill.objects.get(pk=skill_id)
+            student.skills.add(skill)
+            return Response(status=status.HTTP_200_OK)
+        except Skill.DoesNotExist:
+            return Response(
+                {'detail': 'Skill not found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+
+@extend_schema(tags=['Student'])
+class RemoveSkillView(generics.GenericAPIView):
+    """Remove a skill from the authenticated student's profile."""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsStudent]
+
+    def delete(self, request, pk):
+        from core.models import Student, Skill
+        from rest_framework import status
+        from rest_framework.response import Response
+        student = Student.objects.get(pk=self.request.user.pk)
+        try:
+            skill = Skill.objects.get(pk=pk)
+            student.skills.remove(skill)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Skill.DoesNotExist:
+            return Response(
+                {'detail': 'Skill not found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
 
 @extend_schema(tags=['Company'])

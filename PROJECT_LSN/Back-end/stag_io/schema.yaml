@@ -1,0 +1,1325 @@
+openapi: 3.0.3
+info:
+  title: ''
+  version: 0.0.0
+paths:
+  /api/administration/internships/:
+    get:
+      operationId: administration_internships_list
+      description: List all internships for admin's university.
+      tags:
+      - Administration
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminInternship'
+          description: ''
+  /api/administration/internships/{id}/:
+    get:
+      operationId: administration_internships_retrieve
+      description: Retrieve a single internship detail.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Administration
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminInternshipDetail'
+          description: ''
+  /api/administration/internships/{id}/agreement/:
+    get:
+      operationId: administration_internships_agreement_retrieve
+      description: Download the generated internship agreement PDF.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Administration
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/administration/internships/{id}/reject/:
+    patch:
+      operationId: administration_internships_reject_partial_update
+      description: Reject an internship (set status to 'rejected').
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Administration
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/administration/internships/{id}/validate/:
+    patch:
+      operationId: administration_internships_validate_partial_update
+      description: Validate an internship (set status to 'validated').
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Administration
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/administration/notifications/:
+    get:
+      operationId: administration_notifications_list
+      description: List all notifications for the authenticated admin.
+      tags:
+      - Administration - Notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/administration/notifications/{id}/read/:
+    patch:
+      operationId: administration_notifications_read_partial_update
+      description: Mark a single notification as read.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Administration - Notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/administration/notifications/unread/:
+    get:
+      operationId: administration_notifications_unread_list
+      description: List unread notifications for the authenticated admin.
+      tags:
+      - Administration - Notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/administration/statistics/:
+    get:
+      operationId: administration_statistics_retrieve
+      description: Main dashboard summary for admin's university.
+      tags:
+      - Administration - Statistics
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/administration/statistics/agreements/:
+    get:
+      operationId: administration_statistics_agreements_retrieve
+      description: Agreement generation coverage for university internships.
+      tags:
+      - Administration - Statistics
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/administration/statistics/at-risk/:
+    get:
+      operationId: administration_statistics_at_risk_retrieve
+      description: Pending internships near deadline to help early intervention.
+      tags:
+      - Administration - Statistics
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/administration/statistics/companies/:
+    get:
+      operationId: administration_statistics_companies_retrieve
+      description: Company-level internship outcomes for admin's university.
+      tags:
+      - Administration - Statistics
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/administration/statistics/companies/{company_id}/:
+    get:
+      operationId: administration_statistics_companies_retrieve_2
+      description: Detailed analytics for one company within admin's university scope.
+      parameters:
+      - in: path
+        name: company_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Administration - Statistics
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/administration/statistics/statuses/:
+    get:
+      operationId: administration_statistics_statuses_retrieve
+      description: Focused internship status analytics for the university.
+      tags:
+      - Administration - Statistics
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/administration/statistics/students/:
+    get:
+      operationId: administration_statistics_students_retrieve
+      description: Student participation metrics for the admin's university.
+      tags:
+      - Administration - Statistics
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/administration/statistics/trends/:
+    get:
+      operationId: administration_statistics_trends_retrieve
+      description: Monthly or weekly internship trend aggregation.
+      tags:
+      - Administration - Statistics
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/administration/statistics/wilayas/:
+    get:
+      operationId: administration_statistics_wilayas_retrieve
+      description: Geographic distribution grouped by student or company wilaya.
+      tags:
+      - Administration - Statistics
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/schema/:
+    get:
+      operationId: schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - ckb
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - ht
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - ms
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - ug
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      tags:
+      - schema
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/user/{id}/delete/:
+    delete:
+      operationId: user_delete_destroy
+      description: Allow an admin to delete any user by ID.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Superuser
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/user/me/:
+    get:
+      operationId: user_me_retrieve
+      description: Manage the authenticated user (GET /me, PATCH /me).
+      tags:
+      - Account
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+          description: ''
+    put:
+      operationId: user_me_update
+      description: Manage the authenticated user (GET /me, PATCH /me).
+      tags:
+      - Account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDetailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserDetailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserDetailRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+          description: ''
+    patch:
+      operationId: user_me_partial_update
+      description: Manage the authenticated user (GET /me, PATCH /me).
+      tags:
+      - Account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserDetailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserDetailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserDetailRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+          description: ''
+  /api/user/me/company/:
+    get:
+      operationId: user_me_company_retrieve
+      description: View and update company profile (name, description, wilaya, website).
+      tags:
+      - Company
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyUpdate'
+          description: ''
+    patch:
+      operationId: user_me_company_partial_update
+      description: View and update company profile (name, description, wilaya, website).
+      tags:
+      - Company
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCompanyUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCompanyUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCompanyUpdateRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyUpdate'
+          description: ''
+  /api/user/me/student/:
+    get:
+      operationId: user_me_student_retrieve
+      description: View and update student profile (full_name, wilaya, links).
+      tags:
+      - Student
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentUpdate'
+          description: ''
+    patch:
+      operationId: user_me_student_partial_update
+      description: View and update student profile (full_name, wilaya, links).
+      tags:
+      - Student
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStudentUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedStudentUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedStudentUpdateRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentUpdate'
+          description: ''
+  /api/user/me/upload-logo/:
+    patch:
+      operationId: user_me_upload_logo_partial_update
+      description: Upload a logo image for the authenticated company user.
+      tags:
+      - Company
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedLogoImageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedLogoImageRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoImage'
+          description: ''
+  /api/user/me/upload-profile-image/:
+    patch:
+      operationId: user_me_upload_profile_image_partial_update
+      description: Upload a profile image for the authenticated student user.
+      tags:
+      - Student
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileImageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileImageRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileImage'
+          description: ''
+  /api/user/register/company/:
+    post:
+      operationId: user_register_company_create
+      description: Register a new company.
+      tags:
+      - Company
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyRegisterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CompanyRegisterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CompanyRegisterRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyRegister'
+          description: ''
+  /api/user/register/student/:
+    post:
+      operationId: user_register_student_create
+      description: Register a new student.
+      tags:
+      - Student
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentRegisterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StudentRegisterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StudentRegisterRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentRegister'
+          description: ''
+  /api/user/token/:
+    post:
+      operationId: user_token_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPairRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPairRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPairRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+  /api/user/token/refresh/:
+    post:
+      operationId: user_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+components:
+  schemas:
+    AdminInternship:
+      type: object
+      description: Read-only serializer for admin to review internships.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        student:
+          type: integer
+        student_name:
+          type: string
+          readOnly: true
+        student_email:
+          type: string
+          format: email
+          readOnly: true
+        company:
+          type: integer
+        company_name:
+          type: string
+          readOnly: true
+        company_email:
+          type: string
+          format: email
+          readOnly: true
+        subject:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - company
+      - company_email
+      - company_name
+      - created_at
+      - end_date
+      - id
+      - start_date
+      - student
+      - student_email
+      - student_name
+      - subject
+      - updated_at
+    AdminInternshipDetail:
+      type: object
+      description: Detailed internship serializer with agreement metadata.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        student:
+          type: integer
+        student_name:
+          type: string
+          readOnly: true
+        student_email:
+          type: string
+          format: email
+          readOnly: true
+        company:
+          type: integer
+        company_name:
+          type: string
+          readOnly: true
+        company_email:
+          type: string
+          format: email
+          readOnly: true
+        subject:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        agreement:
+          allOf:
+          - $ref: '#/components/schemas/InternshipAgreement'
+          readOnly: true
+      required:
+      - agreement
+      - company
+      - company_email
+      - company_name
+      - created_at
+      - end_date
+      - id
+      - start_date
+      - student
+      - student_email
+      - student_name
+      - subject
+      - updated_at
+    CompanyRegister:
+      type: object
+      description: Serializer for registering a new company.
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        wilaya:
+          type: string
+          maxLength: 100
+        website:
+          type: string
+          format: uri
+          maxLength: 255
+      required:
+      - email
+      - name
+      - wilaya
+    CompanyRegisterRequest:
+      type: object
+      description: Serializer for registering a new company.
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 255
+        password:
+          type: string
+          writeOnly: true
+          minLength: 5
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+        wilaya:
+          type: string
+          minLength: 1
+          maxLength: 100
+        website:
+          type: string
+          format: uri
+          maxLength: 255
+      required:
+      - email
+      - name
+      - password
+      - wilaya
+    CompanyUpdate:
+      type: object
+      description: Serializer for updating company profile fields.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        wilaya:
+          type: string
+          maxLength: 100
+        website:
+          type: string
+          format: uri
+          maxLength: 255
+      required:
+      - email
+      - id
+    InternshipAgreement:
+      type: object
+      description: Read-only serializer for internship agreement metadata.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        pdf_url:
+          type: string
+          format: uri
+          readOnly: true
+        generated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - generated_at
+      - id
+      - pdf_url
+    InternshipPrivacyEnum:
+      enum:
+      - public
+      - private
+      - selected
+      type: string
+      description: |-
+        * `public` - Public — everyone can see
+        * `private` - Private — only me
+        * `selected` - Selected — I choose which ones
+    LogoImage:
+      type: object
+      description: Serializer for uploading images to logos.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        logo:
+          type: string
+          format: uri
+          nullable: true
+      required:
+      - id
+      - logo
+    Notification:
+      type: object
+      description: Serializer for admin notifications.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        internship_id:
+          type: integer
+          readOnly: true
+        notification_type:
+          allOf:
+          - $ref: '#/components/schemas/NotificationTypeEnum'
+          readOnly: true
+        message:
+          type: string
+          readOnly: true
+        student_name:
+          type: string
+          readOnly: true
+        company_name:
+          type: string
+          readOnly: true
+        internship_subject:
+          type: string
+          readOnly: true
+        internship_status:
+          type: string
+          readOnly: true
+        is_read:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - company_name
+      - created_at
+      - id
+      - internship_id
+      - internship_status
+      - internship_subject
+      - message
+      - notification_type
+      - student_name
+    NotificationTypeEnum:
+      enum:
+      - internship_accepted
+      - internship_validated
+      - internship_rejected
+      type: string
+      description: |-
+        * `internship_accepted` - Internship Accepted by Company
+        * `internship_validated` - Internship Validated
+        * `internship_rejected` - Internship Rejected
+    PatchedCompanyUpdateRequest:
+      type: object
+      description: Serializer for updating company profile fields.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+        wilaya:
+          type: string
+          minLength: 1
+          maxLength: 100
+        website:
+          type: string
+          format: uri
+          maxLength: 255
+    PatchedLogoImageRequest:
+      type: object
+      description: Serializer for uploading images to logos.
+      properties:
+        logo:
+          type: string
+          format: binary
+          nullable: true
+    PatchedProfileImageRequest:
+      type: object
+      description: Serializer for uploading student profile images.
+      properties:
+        profile_image:
+          type: string
+          format: binary
+          nullable: true
+    PatchedStudentUpdateRequest:
+      type: object
+      description: Serializer for updating student profile fields.
+      properties:
+        full_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        wilaya:
+          type: string
+          minLength: 1
+          maxLength: 100
+        bio:
+          type: string
+        github_link:
+          type: string
+          format: uri
+          maxLength: 255
+        portfolio_link:
+          type: string
+          format: uri
+          maxLength: 255
+        internship_privacy:
+          $ref: '#/components/schemas/InternshipPrivacyEnum'
+    PatchedUserDetailRequest:
+      type: object
+      description: Serializer for the authenticated user detail (GET /me).
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 255
+    ProfileImage:
+      type: object
+      description: Serializer for uploading student profile images.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        profile_image:
+          type: string
+          format: uri
+          nullable: true
+      required:
+      - id
+      - profile_image
+    RoleEnum:
+      enum:
+      - student
+      - company
+      - admin
+      type: string
+      description: |-
+        * `student` - Student
+        * `company` - Company
+        * `admin` - Admin
+    StatusEnum:
+      enum:
+      - pending
+      - accepted_by_company
+      - validated
+      - rejected
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `accepted_by_company` - Accepted by Company
+        * `validated` - Validated
+        * `rejected` - Rejected
+    StudentRegister:
+      type: object
+      description: Serializer for registering a new student.
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        full_name:
+          type: string
+          maxLength: 255
+        wilaya:
+          type: string
+          maxLength: 100
+        github_link:
+          type: string
+          format: uri
+          maxLength: 255
+        portfolio_link:
+          type: string
+          format: uri
+          maxLength: 255
+      required:
+      - email
+      - full_name
+      - wilaya
+    StudentRegisterRequest:
+      type: object
+      description: Serializer for registering a new student.
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 255
+        password:
+          type: string
+          writeOnly: true
+          minLength: 5
+        full_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        wilaya:
+          type: string
+          minLength: 1
+          maxLength: 100
+        github_link:
+          type: string
+          format: uri
+          maxLength: 255
+        portfolio_link:
+          type: string
+          format: uri
+          maxLength: 255
+      required:
+      - email
+      - full_name
+      - password
+      - wilaya
+    StudentUpdate:
+      type: object
+      description: Serializer for updating student profile fields.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        full_name:
+          type: string
+          maxLength: 255
+        wilaya:
+          type: string
+          maxLength: 100
+        bio:
+          type: string
+        github_link:
+          type: string
+          format: uri
+          maxLength: 255
+        portfolio_link:
+          type: string
+          format: uri
+          maxLength: 255
+        profile_image:
+          type: string
+          format: uri
+          readOnly: true
+          nullable: true
+        last_seen:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        internship_privacy:
+          $ref: '#/components/schemas/InternshipPrivacyEnum'
+      required:
+      - email
+      - id
+      - last_seen
+      - profile_image
+    TokenObtainPair:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - refresh
+    TokenObtainPairRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          writeOnly: true
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - email
+      - password
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+      required:
+      - access
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - refresh
+    UserDetail:
+      type: object
+      description: Serializer for the authenticated user detail (GET /me).
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          readOnly: true
+        is_active:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - email
+      - id
+      - is_active
+      - role
+    UserDetailRequest:
+      type: object
+      description: Serializer for the authenticated user detail (GET /me).
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 255
+      required:
+      - email
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+- name: Auth
+  description: Authentication (JWT tokens)
+- name: Student
+  description: Student registration & profile
+- name: Company
+  description: Company registration & logo
+- name: Account
+  description: Manage authenticated user
+- name: Admin
+  description: Admin-only operations
