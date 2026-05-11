@@ -37,6 +37,8 @@ export default function Sidebar({ role }) {
     { name: 'Explore Offers', icon: Briefcase, path: `/${role}/internships` },
     { name: 'My Applications', icon: FileText, path: `/${role}/applications` },
     { name: 'Notifications', icon: Bell, path: `/${role}/notifications`, badge: true },
+    { name: 'Edit Profile', icon: Users, path: `/${role}/profile` },
+    { name: 'Digital CV', icon: Network, path: `/${role}/cv` },
   ] : [
     { name: 'Dashboard', icon: LayoutDashboard, path: `/${role}` },
     { name: 'Internship Offers', icon: Briefcase, path: `/${role}/internships` },

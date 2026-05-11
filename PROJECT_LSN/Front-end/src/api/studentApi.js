@@ -4,14 +4,17 @@ import api from './axios';
 export const getOffers = (searchParams = {}) => {
   let url = '/api/student/offers/';
   const params = new URLSearchParams();
-  
+
   if (typeof searchParams === 'string') {
     if (searchParams) params.append('search', searchParams);
   } else {
     if (searchParams.search) params.append('search', searchParams.search);
     if (searchParams.type && searchParams.type !== 'all') params.append('type', searchParams.type);
+    if (searchParams.remote) params.append('remote', 'true');
+    if (searchParams.duration && searchParams.duration !== 'none') params.append('duration', searchParams.duration);
+    if (searchParams.ordering) params.append('ordering', searchParams.ordering);
   }
-  
+
   const queryString = params.toString();
   if (queryString) url += `?${queryString}`;
   return api.get(url);

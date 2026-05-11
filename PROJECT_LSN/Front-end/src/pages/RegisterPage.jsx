@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  User, 
-  Briefcase, 
-  CheckCircle2, 
+import {
+  User,
+  Briefcase,
+  CheckCircle2,
   ArrowRight,
   Mail,
   Lock,
@@ -25,47 +25,94 @@ const ALGERIAN_WILAYAS = [
   "31 - Oran", "32 - El Bayadh", "33 - Illizi", "34 - Bordj Bou Arréridj", "35 - Boumerdès",
   "36 - El Tarf", "37 - Tindouf", "38 - Tissemsilt", "39 - El Oued", "40 - Khenchela",
   "41 - Souk Ahras", "42 - Tipaza", "43 - Mila", "44 - Aïn Defla", "45 - Naâma",
-  "46 - Aïn Témouchent", "47 - Ghardaïa", "48 - Relizane", "49 - Timimoun", "50 - Bordj Badji Mokhtar",
-  "51 - Ouled Djellal", "52 - Béni Abbès", "53 - In Salah", "54 - In Guezzam", "55 - Touggourt",
-  "56 - Djanet", "57 - El M'Ghair", "58 - El Meniaa"
+  "46 - Aïn Témouchent", "47 - Ghardaïa", "48 - Relizane",
+];
+
+// Allowed university email domains for students
+const ALLOWED_STUDENT_DOMAINS = [
+  { domain: 'univ-constantine1.dz', label: '@univ-constantine1.dz' },
+  { domain: 'univ-constantine2.dz', label: '@univ-constantine2.dz' },
+  { domain: 'univ-constantine3.dz', label: '@univ-constantine3.dz' },
+  { domain: 'univ-setif1.dz', label: '@univ-setif1.dz' },
+  { domain: 'univ-usthb.dz', label: '@univ-usthb.dz' },
 ];
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
     role: 'student',
     full_name: '',    // Student only
     name: '',         // Company only
     phone_number: '', // Company only
     wilaya: '',       // Both
   });
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  const validate = () => {
+    const errs = {};
+    if (!formData.email) {
+      errs.email = 'Email is required';
+    } else if (formData.role === 'student') {
+      const domain = formData.email.split('@')[-1]?.toLowerCase();
+      const allowed = ALLOWED_STUDENT_DOMAINS.map(d => d.domain);
+      if (!allowed.includes(domain)) {
+        errs.email = `Students must register with a university email. Allowed: ${ALLOWED_STUDENT_DOMAINS.map(d => d.label).join(', ')}`;
+      }
+    }
+    if (!formData.password) {
+      errs.password = 'Password is required';
+    } else if (formData.password.length < 5) {
+      errs.password = 'Password must be at least 5 characters';
+    }
+    if (formData.password !== formData.confirmPassword) {
+      errs.confirmPassword = 'Passwords do not match';
+    }
+    if (formData.role === 'student' && !formData.full_name) {
+      errs.full_name = 'Full name is required';
+    }
+    if (formData.role === 'company' && !formData.name) {
+      errs.name = 'Company name is required';
+    }
+    if (!formData.wilaya) {
+      errs.wilaya = 'Please select a wilaya';
+    }
+    return errs;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
+    setErrors({});
     setLoading(true);
-    setError('');
     try {
       const payload = { ...formData };
       if (formData.role === 'student') {
         delete payload.name;
         delete payload.phone_number;
+        delete payload.confirmPassword;
       } else {
         delete payload.full_name;
+        delete payload.confirmPassword;
       }
-      
+
       await register(formData.role, payload);
       navigate('/');
     } catch (err) {
-      const msg = err.response?.data?.email?.[0] || 
+      const msg = err.response?.data?.email?.[0] ||
                   err.response?.data?.password?.[0] ||
                   err.response?.data?.non_field_errors?.[0] ||
+                  err.response?.data?.detail ||
                   'Registration failed. Please check your data.';
-      setError(msg);
+      setErrors({ general: msg });
     } finally {
       setLoading(false);
     }
@@ -73,18 +120,18 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex bg-white font-sans selection:bg-indigo-100">
-      
+
       {/* LEFT SIDE - BRANDING */}
       <div className="hidden lg:flex lg:w-1/2 bg-indigo-600 p-24 flex-col justify-between relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 blur-3xl rounded-full translate-x-32 -translate-y-32"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-900/20 blur-3xl rounded-full -translate-x-32 translate-y-32"></div>
-        
+
         <div className="relative z-10">
           <Link to="/" className="text-3xl font-black text-white tracking-tighter flex items-center gap-2">
             <div className="w-8 h-8 bg-white rounded-lg shadow-sm"></div>
             Stag.io
           </Link>
-          
+
           <div className="mt-32 max-w-xl">
             <h1 className="text-6xl xl:text-7xl font-black text-white leading-[1] tracking-tighter mb-12 animate-slide-up">
               Start your <br /> journey today.
@@ -131,17 +178,17 @@ export default function RegisterPage() {
           </div>
 
           <div className="flex p-1.5 bg-gray-200/50 rounded-[20px] mb-10">
-            <button 
+            <button
               type="button"
-              onClick={() => setFormData({...formData, role: 'student'})}
+              onClick={() => { setFormData({...formData, role: 'student', confirmPassword: ''}); setErrors({}); }}
               className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-black uppercase tracking-widest text-xs transition-all ${formData.role === 'student' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
             >
               <User size={16} />
               <span>Student</span>
             </button>
-            <button 
+            <button
               type="button"
-              onClick={() => setFormData({...formData, role: 'company'})}
+              onClick={() => { setFormData({...formData, role: 'company', confirmPassword: ''}); setErrors({}); }}
               className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-black uppercase tracking-widest text-xs transition-all ${formData.role === 'company' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
             >
               <Briefcase size={16} />
@@ -149,28 +196,29 @@ export default function RegisterPage() {
             </button>
           </div>
 
-          {error && (
+          {errors.general && (
             <div className="mb-8 p-4 bg-rose-50 border border-rose-200 text-rose-600 rounded-2xl text-sm font-bold flex items-center gap-3">
               <Zap size={18} className="shrink-0" />
-              {error}
+              {errors.general}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {formData.role === 'student' ? (
                 <div className="space-y-2 md:col-span-2">
                   <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest px-1">Full Name</label>
                   <div className="relative group">
                     <User className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" size={20} />
-                    <input 
-                      className="w-full pl-14 pr-6 py-4 bg-white border border-gray-200 rounded-2xl font-bold text-gray-900 focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-50 focus:outline-none transition-all shadow-sm" 
+                    <input
+                      className={`w-full pl-14 pr-6 py-4 bg-white border rounded-2xl font-bold text-gray-900 focus:ring-4 focus:ring-indigo-50 focus:outline-none transition-all shadow-sm ${errors.full_name ? 'border-rose-400 focus:border-rose-500' : 'border-gray-200 focus:border-indigo-600'}`}
                       placeholder="Enter your full name"
-                      value={formData.full_name} 
-                      onChange={e => setFormData({...formData, full_name: e.target.value})} 
-                      required 
+                      value={formData.full_name}
+                      onChange={e => { setFormData({...formData, full_name: e.target.value}); setErrors({...errors, full_name: ''}); }}
+                      required
                     />
                   </div>
+                  {errors.full_name && <p className="text-rose-500 text-xs font-bold px-1">{errors.full_name}</p>}
                 </div>
               ) : (
                 <>
@@ -178,26 +226,27 @@ export default function RegisterPage() {
                     <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest px-1">Company Name</label>
                     <div className="relative group">
                       <Building2 className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" size={20} />
-                      <input 
-                        className="w-full pl-14 pr-6 py-4 bg-white border border-gray-200 rounded-2xl font-bold text-gray-900 focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-50 focus:outline-none transition-all shadow-sm" 
+                      <input
+                        className={`w-full pl-14 pr-6 py-4 bg-white border rounded-2xl font-bold text-gray-900 focus:ring-4 focus:ring-indigo-50 focus:outline-none transition-all shadow-sm ${errors.name ? 'border-rose-400 focus:border-rose-500' : 'border-gray-200 focus:border-indigo-600'}`}
                         placeholder="Company Ltd"
-                        value={formData.name} 
-                        onChange={e => setFormData({...formData, name: e.target.value})} 
-                        required 
+                        value={formData.name}
+                        onChange={e => { setFormData({...formData, name: e.target.value}); setErrors({...errors, name: ''}); }}
+                        required
                       />
                     </div>
+                    {errors.name && <p className="text-rose-500 text-xs font-bold px-1">{errors.name}</p>}
                   </div>
                   <div className="space-y-2">
                     <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest px-1">Phone Number</label>
                     <div className="relative group">
                       <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" size={20} />
-                      <input 
+                      <input
                         type="tel"
-                        className="w-full pl-14 pr-6 py-4 bg-white border border-gray-200 rounded-2xl font-bold text-gray-900 focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-50 focus:outline-none transition-all shadow-sm" 
+                        className="w-full pl-14 pr-6 py-4 bg-white border border-gray-200 rounded-2xl font-bold text-gray-900 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-50 focus:outline-none transition-all shadow-sm"
                         placeholder="+213 555 55 55 55"
-                        value={formData.phone_number} 
-                        onChange={e => setFormData({...formData, phone_number: e.target.value})} 
-                        required 
+                        value={formData.phone_number}
+                        onChange={e => setFormData({...formData, phone_number: e.target.value})}
+                        required
                       />
                     </div>
                   </div>
@@ -205,18 +254,21 @@ export default function RegisterPage() {
               )}
 
               <div className="space-y-2">
-                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest px-1">Email Address</label>
+                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest px-1">
+                  Email Address {formData.role === 'student' && <span className="text-amber-500 normal-case tracking-normal font-normal ml-1">(use your university email)</span>}
+                </label>
                 <div className="relative group">
                   <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" size={20} />
-                  <input 
+                  <input
                     type="email"
-                    className="w-full pl-14 pr-6 py-4 bg-white border border-gray-200 rounded-2xl font-bold text-gray-900 focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-50 focus:outline-none transition-all shadow-sm" 
-                    placeholder="name@example.com"
-                    value={formData.email} 
-                    onChange={e => setFormData({...formData, email: e.target.value})} 
-                    required 
+                    className={`w-full pl-14 pr-6 py-4 bg-white border rounded-2xl font-bold text-gray-900 focus:ring-4 focus:ring-indigo-50 focus:outline-none transition-all shadow-sm ${errors.email ? 'border-rose-400 focus:border-rose-500' : 'border-gray-200 focus:border-indigo-600'}`}
+                    placeholder={formData.role === 'student' ? 'name@univ-constantine1.dz' : 'contact@company.com'}
+                    value={formData.email}
+                    onChange={e => { setFormData({...formData, email: e.target.value}); setErrors({...errors, email: ''}); }}
+                    required
                   />
                 </div>
+                {errors.email && <p className="text-rose-500 text-xs font-bold px-1">{errors.email}</p>}
               </div>
 
               <div className="space-y-2">
@@ -224,9 +276,9 @@ export default function RegisterPage() {
                 <div className="relative group">
                   <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" size={20} />
                   <select
-                    className="w-full pl-14 pr-6 py-4 bg-white border border-gray-200 rounded-2xl font-bold text-gray-900 focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-50 focus:outline-none transition-all shadow-sm appearance-none cursor-pointer"
+                    className={`w-full pl-14 pr-6 py-4 bg-white border rounded-2xl font-bold text-gray-900 focus:ring-4 focus:ring-indigo-50 focus:outline-none transition-all shadow-sm appearance-none cursor-pointer ${errors.wilaya ? 'border-rose-400 focus:border-rose-500' : 'border-gray-200 focus:border-indigo-600'}`}
                     value={formData.wilaya}
-                    onChange={e => setFormData({...formData, wilaya: e.target.value})}
+                    onChange={e => { setFormData({...formData, wilaya: e.target.value}); setErrors({...errors, wilaya: ''}); }}
                     required
                   >
                     <option value="" disabled>Select your Wilaya</option>
@@ -235,26 +287,58 @@ export default function RegisterPage() {
                     ))}
                   </select>
                 </div>
+                {errors.wilaya && <p className="text-rose-500 text-xs font-bold px-1">{errors.wilaya}</p>}
               </div>
 
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2">
                 <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest px-1">Password</label>
                 <div className="relative group">
                   <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" size={20} />
-                  <input 
+                  <input
                     type="password"
-                    className="w-full pl-14 pr-6 py-4 bg-white border border-gray-200 rounded-2xl font-bold text-gray-900 focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-50 focus:outline-none transition-all shadow-sm" 
-                    placeholder="••••••••"
-                    value={formData.password} 
-                    onChange={e => setFormData({...formData, password: e.target.value})} 
-                    required 
+                    className={`w-full pl-14 pr-6 py-4 bg-white border rounded-2xl font-bold text-gray-900 focus:ring-4 focus:ring-indigo-50 focus:outline-none transition-all shadow-sm ${errors.password ? 'border-rose-400 focus:border-rose-500' : 'border-gray-200 focus:border-indigo-600'}`}
+                    placeholder="Min. 5 characters"
+                    value={formData.password}
+                    onChange={e => { setFormData({...formData, password: e.target.value}); setErrors({...errors, password: ''}); }}
+                    required
                   />
                 </div>
+                {errors.password && <p className="text-rose-500 text-xs font-bold px-1">{errors.password}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest px-1">Confirm Password</label>
+                <div className="relative group">
+                  <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" size={20} />
+                  <input
+                    type="password"
+                    className={`w-full pl-14 pr-6 py-4 bg-white border rounded-2xl font-bold text-gray-900 focus:ring-4 focus:ring-indigo-50 focus:outline-none transition-all shadow-sm ${errors.confirmPassword ? 'border-rose-400 focus:border-rose-500' : 'border-gray-200 focus:border-indigo-600'}`}
+                    placeholder="Repeat password"
+                    value={formData.confirmPassword}
+                    onChange={e => { setFormData({...formData, confirmPassword: e.target.value}); setErrors({...errors, confirmPassword: ''}); }}
+                    required
+                  />
+                </div>
+                {errors.confirmPassword && <p className="text-rose-500 text-xs font-bold px-1">{errors.confirmPassword}</p>}
               </div>
             </div>
 
-            <button 
-              type="submit" 
+            {/* Allowed university domains hint for students */}
+            {formData.role === 'student' && (
+              <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
+                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-2">Allowed Student Email Domains</p>
+                <div className="flex flex-wrap gap-2">
+                  {ALLOWED_STUDENT_DOMAINS.map(d => (
+                    <span key={d.domain} className="px-3 py-1 bg-white text-indigo-700 rounded-lg font-black text-[10px] uppercase tracking-widest border border-indigo-100">
+                      {d.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <button
+              type="submit"
               disabled={loading}
               className="w-full py-4 mt-2 bg-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3 group disabled:opacity-70 disabled:translate-y-0 active:scale-95"
             >
