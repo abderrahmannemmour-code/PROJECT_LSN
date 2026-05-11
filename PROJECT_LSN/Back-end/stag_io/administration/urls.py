@@ -6,12 +6,6 @@ from administration import views
 app_name = 'administration'
 
 urlpatterns = [
-    # Admin Reset Data
-    path(
-        'reset-data/',
-        views.AdminResetDataView.as_view(),
-        name='admin-reset',
-    ),
     # Notifications
     path(
         'notifications/',
@@ -27,11 +21,6 @@ urlpatterns = [
         'notifications/<int:pk>/read/',
         views.MarkNotificationReadView.as_view(),
         name='notification-read',
-    ),
-    path(
-        'notifications/mark-all-read/',
-        views.MarkAllNotificationsReadView.as_view(),
-        name='notification-mark-all-read',
     ),
     # Internships
     path(
@@ -91,11 +80,6 @@ urlpatterns = [
         name='statistics-statuses',
     ),
     path(
-        'statistics/trends/',
-        views.StatisticsTrendsView.as_view(),
-        name='statistics-trends',
-    ),
-    path(
         'statistics/students/',
         views.StatisticsStudentsView.as_view(),
         name='statistics-students',
@@ -105,106 +89,5 @@ urlpatterns = [
         views.StatisticsCompanyDetailView.as_view(),
         name='statistics-company-detail',
     ),
-    path(
-        'statistics/at-risk/',
-        views.StatisticsAtRiskView.as_view(),
-        name='statistics-at-risk',
-    ),
-    # Student Actions
-    path(
-        'student/apply/',
-        views.StudentInternshipListCreateView.as_view(),
-        name='student-internship-list-create',
-    ),
-    # Company Actions
-    path(
-        'company/internships/',
-        views.CompanyInternshipListView.as_view(),
-        name='company-internship-list',
-    ),
-    path(
-        'company/internships/<int:pk>/accept/',
-        views.CompanyAcceptInternshipView.as_view(),
-        name='company-internship-accept',
-    ),
-    path(
-        'company/internships/<int:pk>/reject/',
-        views.CompanyRejectInternshipView.as_view(),
-        name='company-internship-reject',
-    ),
-    # Company Offers
-    path(
-        'company/offers/',
-        views.CompanyInternshipOfferListCreateView.as_view(),
-        name='company-offer-list',
-    ),
-    path(
-        'company/offers/<int:pk>/',
-        views.CompanyInternshipOfferDetailView.as_view(),
-        name='company-offer-detail',
-    ),
-    path(
-        'company/offers/<int:pk>/upload-image/',
-        views.CompanyOfferImageUploadView.as_view(),
-        name='company-offer-image-upload',
-    ),
-    # Public
-    path(
-        'public/companies/',
-        views.PublicCompanyListView.as_view(),
-        name='public-company-list',
-    ),
-    path(
-        'public/offers/',
-        views.PublicInternshipOfferListView.as_view(),
-        name='public-offer-list',
-    ),
-    path(
-        'public/offers/<int:pk>/',
-        views.PublicInternshipOfferDetailView.as_view(),
-        name='public-offer-detail',
-    ),
-    # Company Stats
-    path(
-        'company/stats/',
-        views.CompanyDashboardStatsView.as_view(),
-        name='company-dashboard-stats',
-    ),
-    path(
-        'company/offers/<int:pk>/stats/',
-        views.CompanyOfferStatsView.as_view(),
-        name='company-offer-stats',
-    ),
-    # Company Notifications
-    path(
-        'company/notifications/',
-        views.CompanyNotificationListView.as_view(),
-        name='company-notification-list',
-    ),
-    path(
-        'company/notifications/mark-read/',
-        views.MarkCompanyNotificationsReadView.as_view(),
-        name='company-notification-mark-read',
-    ),
-    # Student Notifications
-    path(
-        'student/notifications/',
-        views.StudentNotificationListView.as_view(),
-        name='student-notification-list',
-    ),
-    path(
-        'student/notifications/<int:pk>/read/',
-        views.StudentMarkNotificationReadView.as_view(),
-        name='student-notification-read',
-    ),
-    path(
-        'student/agreements/<int:pk>/download/',
-        views.StudentDownloadAgreementView.as_view(),
-        name='student-agreement-download',
-    ),
-    path(
-        'notifications/mark-all-read/',
-        views.MarkAllNotificationsReadView.as_view(),
-        name='notification-mark-all-read',
-    ),
 ]
+

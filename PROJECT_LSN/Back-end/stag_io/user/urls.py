@@ -68,14 +68,4 @@ urlpatterns = [
         views.StudentProfileImageUploadView.as_view(),
         name='upload-profile-image',
     ),
-    path(
-        'skills/',
-        views.SkillListView.as_view(),
-        name='skill-list',
-    ),
-    path(
-        'universities/',
-        views.UniversityListView.as_view(),
-        name='university-list',
-    ),
 ]

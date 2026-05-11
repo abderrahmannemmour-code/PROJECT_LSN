@@ -26,9 +26,7 @@ SECRET_KEY = 'django-insecure-=t*+copwill^!v@0#lza(u%jlx^_d5%b@sd4tts3$=g+^hm&@u
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
-
-CORS_ALLOW_ALL_ORIGINS = True
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -43,21 +41,20 @@ INSTALLED_APPS = [
     'core',
     'user',
     'administration',
+    'student',
+    'company',
     'rest_framework',
     'drf_spectacular',
-    'corsheaders',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'core.middleware.UpdateLastSeenMiddleware',
 ]
 
 ROOT_URLCONF = 'stag_io.urls'
@@ -87,10 +84,10 @@ WSGI_APPLICATION = 'stag_io.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'NAME': os.environ.get('DB_NAME', 'stag_io'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASS', 'postgres'),
+        'HOST': os.environ.get('DB_HOST', 'db'),
+        'NAME': os.environ.get('DB_NAME', 'devdb'),
+        'USER': os.environ.get('DB_USER', 'devuser'),
+        'PASSWORD': os.environ.get('DB_PASS', 'changeme'),
         'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
@@ -132,11 +129,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
-STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
+STATIC_URL = '/static/static/'
+MEDIA_URL = '/static/media/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+STATIC_ROOT = '/vol/web/static'
+MEDIA_ROOT = '/vol/web/media' 
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -166,9 +163,10 @@ SPECTACULAR_SETTINGS = {
         {'name': 'Company', 'description': 'Company registration & logo'},
         {'name': 'Account', 'description': 'Manage authenticated user'},
         {'name': 'Admin', 'description': 'Admin-only operations'},
+        {'name': 'Skills', 'description': 'Skills list & student skill management'},
+        {'name': 'Company Offers', 'description': 'Internship offer management for companies'},
+        {'name': 'Company Applicants', 'description': 'View and manage student applications'},
+        {'name': 'Notifications', 'description': 'Notifications for all users'},
     ],
 }
 
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-]
