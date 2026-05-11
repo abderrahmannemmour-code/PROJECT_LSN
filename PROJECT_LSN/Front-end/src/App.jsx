@@ -7,7 +7,8 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import InternshipDetailPage from './pages/InternshipDetailPage';
 import StudentDashboard from './pages/student/StudentDashboard';
-import ProfilePage from './pages/student/ProfilePage';
+import EditProfilePage from './pages/student/EditProfilePage';
+import DigitalCVPage from './pages/student/DigitalCVPage';
 import NotificationsPage from './pages/student/NotificationsPage';
 import CompanyDashboard from './pages/company/CompanyDashboard';
 import CompanyProfilePage from './pages/company/CompanyProfilePage';
@@ -39,7 +40,8 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/internship/:id" element={<InternshipDetailPage />} />
 
-          <Route path="/student/profile" element={<ProtectedRoute role="student"><ProfilePage /></ProtectedRoute>} />
+          <Route path="/student/profile" element={<ProtectedRoute role="student"><EditProfilePage /></ProtectedRoute>} />
+          <Route path="/student/cv" element={<ProtectedRoute role="student"><DigitalCVPage /></ProtectedRoute>} />
           <Route path="/student/notifications" element={<ProtectedRoute role="student"><NotificationsPage /></ProtectedRoute>} />
           <Route path="/student/*" element={<ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute>} />
           <Route path="/company/profile" element={<ProtectedRoute role="company"><CompanyProfilePage /></ProtectedRoute>} />

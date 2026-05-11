@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useParams, Navigate } from 'react-router-dom';
-import { 
-  Plus, 
-  Users, 
-  CheckCircle2, 
+import {
+  Plus,
+  Users,
+  CheckCircle2,
   MoreHorizontal,
   Edit2,
   Trash2,
@@ -12,7 +12,8 @@ import {
   Loader2,
   FileText,
   TrendingUp,
-  XCircle
+  XCircle,
+  Wifi
 } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import StatusBadge from '../../components/StatusBadge';
@@ -161,7 +162,7 @@ function InternshipsView({ offers, loading, handleEdit, handleDelete, setShowOff
           <p className="text-gray-500 font-medium mt-1">Manage your listings and review applicants.</p>
         </div>
         <button 
-          onClick={() => { setEditingOffer(null); setOfferForm({title:'', description:'', location:'', requirements:'', is_active:true, imageFile:null, type:'unpaid', salary:'', duration_months:1, skills:[]}); setShowOfferModal(true); }}
+          onClick={() => { setEditingOffer(null); setOfferForm({title:'', description:'', location:'', requirements:'', is_active:true, imageFile:null, type:'unpaid', salary:'', duration_months:1, skills:[], is_remote:false}); setShowOfferModal(true); }}
           className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-md hover:bg-indigo-700 transition-all shrink-0"
         >
           <Plus size={18} />
@@ -211,7 +212,13 @@ function InternshipsView({ offers, loading, handleEdit, handleDelete, setShowOff
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-5 text-sm font-medium text-gray-600">{offer.wilaya || offer.location || '—'}</td>
+                    <td className="px-6 py-5 text-sm font-medium text-gray-600">
+                        {offer.is_remote ? (
+                          <span className="flex items-center gap-1 text-emerald-600 font-black text-xs uppercase"><Wifi size={14} /> Remote</span>
+                        ) : (
+                          offer.wilaya || offer.location || '—'
+                        )}
+                      </td>
                     <td className="px-6 py-5">
                       <span className="px-2 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-indigo-100">
                         {offer.duration_months}m
@@ -306,7 +313,7 @@ function CompanyOfferDetailView({ offers, handleEdit, handleAppResponse }) {
               <span className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest border ${offer.is_active ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
                 {offer.is_active ? 'Active' : 'Inactive'}
               </span>
-              <span className="text-sm font-bold text-gray-500">{offer.wilaya || offer.location || 'Remote'}</span>
+              <span className="text-sm font-bold text-gray-500">{offer.is_remote ? <span className="flex items-center gap-1"><Wifi size={14} /> Remote</span> : offer.wilaya || offer.location || 'Algeria'}</span>
               <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-md text-[10px] font-black uppercase tracking-widest border border-indigo-100">
                 {offer.duration_months} {offer.duration_months === 1 ? 'Month' : 'Months'}
               </span>
@@ -598,7 +605,7 @@ export default function CompanyDashboard() {
   const [loadingApps, setLoadingApps] = useState(true);
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [editingOffer, setEditingOffer] = useState(null);
-  const [offerForm, setOfferForm] = useState({ title: '', description: '', location: '', requirements: '', is_active: true, imageFile: null, type: 'unpaid', salary: '', start_date: '', end_date: '', skills: [] });
+  const [offerForm, setOfferForm] = useState({ title: '', description: '', location: '', requirements: '', is_active: true, imageFile: null, type: 'unpaid', salary: '', start_date: '', end_date: '', skills: [], is_remote: false });
   const [formError, setFormError] = useState('');
   const [savingOffer, setSavingOffer] = useState(false);
   const [offerToDelete, setOfferToDelete] = useState(null);
@@ -694,28 +701,30 @@ export default function CompanyDashboard() {
         const res = await updateOffer(editingOffer.id, {
           title: offerForm.title,
           description: offerForm.description,
-          location: offerForm.location,
+          location: offerForm.is_remote ? '' : offerForm.location,
           requirements: offerForm.requirements,
           is_active: offerForm.is_active,
           type: offerForm.type,
           salary: offerForm.type === 'paid' ? offerForm.salary : null,
           start_date: offerForm.start_date || null,
           end_date: offerForm.end_date || null,
-          skills: offerForm.skills
+          skills: offerForm.skills,
+          is_remote: offerForm.is_remote,
         });
         savedOffer = res.data;
       } else { 
         const res = await createOffer({
           title: offerForm.title,
           description: offerForm.description,
-          location: offerForm.location,
+          location: offerForm.is_remote ? '' : offerForm.location,
           requirements: offerForm.requirements,
           is_active: offerForm.is_active,
           type: offerForm.type,
           salary: offerForm.type === 'paid' ? offerForm.salary : null,
           start_date: offerForm.start_date || null,
           end_date: offerForm.end_date || null,
-          skills: offerForm.skills
+          skills: offerForm.skills,
+          is_remote: offerForm.is_remote,
         });
         savedOffer = res.data;
       }
@@ -736,18 +745,19 @@ export default function CompanyDashboard() {
 
   const handleEdit = (offer) => {
     setEditingOffer(offer);
-    setOfferForm({ 
-      title: offer.title, 
-      description: offer.description || '', 
-      location: offer.wilaya || offer.location || '', 
-      requirements: offer.requirements || '', 
-      is_active: offer.is_active, 
-      imageFile: null, 
-      type: offer.type || 'unpaid', 
+    setOfferForm({
+      title: offer.title,
+      description: offer.description || '',
+      location: offer.wilaya || offer.location || '',
+      requirements: offer.requirements || '',
+      is_active: offer.is_active,
+      imageFile: null,
+      type: offer.type || 'unpaid',
       salary: offer.salary || '',
       start_date: offer.start_date || '',
       end_date: offer.end_date || '',
-      skills: offer.skills || []
+      skills: offer.skills || [],
+      is_remote: offer.is_remote || false,
     });
     setShowOfferModal(true);
   };
@@ -798,12 +808,34 @@ export default function CompanyDashboard() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest">Location *</label>
-                  <select className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-bold text-gray-900 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-50 focus:outline-none transition-all" value={offerForm.location} onChange={e => setOfferForm({...offerForm, location: e.target.value})} required>
+                  <select
+                    className={`w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-indigo-50 focus:outline-none transition-all ${offerForm.is_remote ? 'opacity-40 cursor-not-allowed' : ''}`}
+                    value={offerForm.location}
+                    onChange={e => setOfferForm({...offerForm, location: e.target.value})}
+                    disabled={offerForm.is_remote}
+                  >
                     <option value="" disabled>Select a location</option>
                     {ALGERIAN_WILAYAS.map(wilaya => (
                       <option key={wilaya} value={wilaya}>{wilaya}</option>
                     ))}
                   </select>
+                </div>
+
+                {/* Remote toggle */}
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest">Remote Internship</label>
+                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-200 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="remote-toggle"
+                      className="w-5 h-5 accent-indigo-600 rounded"
+                      checked={offerForm.is_remote}
+                      onChange={e => setOfferForm({...offerForm, is_remote: e.target.checked, location: e.target.checked ? '' : offerForm.location})}
+                    />
+                    <label htmlFor="remote-toggle" className="text-sm font-bold text-gray-700 cursor-pointer select-none">
+                      This is a remote/online internship (no wilaya or location required)
+                    </label>
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

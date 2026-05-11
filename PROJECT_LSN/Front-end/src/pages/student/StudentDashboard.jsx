@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import { 
-  Search, 
+import {
+  Search,
   Bookmark,
   Zap,
   Globe,
@@ -10,7 +10,8 @@ import {
   Timer,
   FileText,
   Loader2,
-  Download
+  Download,
+  Wifi
 } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import StatusBadge from '../../components/StatusBadge';
@@ -30,8 +31,9 @@ function ExploreView({ offers, loading, loadData, handleApply, onSelectOffer }) 
   const [search, setSearch]         = useState('');
   const [type, setType]             = useState('all');
   const [wilaya, setWilaya]         = useState('all');
-  const [durationSort, setDurationSort] = useState('none'); // 'asc' | 'desc' | 'none'
-  const [dateSort, setDateSort]     = useState('newest');   // 'newest' | 'oldest'
+  const [remoteOnly, setRemoteOnly]  = useState(false);
+  const [duration, setDuration]     = useState('none'); // 'short' | 'medium' | 'long'
+  const [orderBy, setOrderBy]       = useState('newest');
 
   // Collect unique wilayas from loaded offers
   const wilayas = [...new Set(offers.map(o => o.wilaya).filter(Boolean))].sort();
@@ -41,28 +43,39 @@ function ExploreView({ offers, loading, loadData, handleApply, onSelectOffer }) 
     .filter(o => {
       const matchesType   = type === 'all' || o.type === type;
       const matchesWilaya = wilaya === 'all' || o.wilaya === wilaya;
-      const matchesSearch = !search || 
+      const matchesRemote = !remoteOnly || o.is_remote === true;
+      const matchesSearch = !search ||
         o.title?.toLowerCase().includes(search.toLowerCase()) ||
         o.company_name?.toLowerCase().includes(search.toLowerCase());
-      return matchesType && matchesWilaya && matchesSearch;
+
+      if (duration !== 'none') {
+        if (!o.start_date || !o.end_date) return false;
+        const days = (new Date(o.end_date) - new Date(o.start_date)) / (1000 * 60 * 60 * 24);
+        if (duration === 'short' && (days < 14 || days > 28)) return false;
+        if (duration === 'medium' && (days < 29 || days > 60)) return false;
+        if (duration === 'long' && days <= 60) return false;
+      }
+
+      return matchesType && matchesWilaya && matchesRemote && matchesSearch;
     })
     .sort((a, b) => {
-      const getDays = (o) => (o.start_date && o.end_date) ? new Date(o.end_date) - new Date(o.start_date) : 0;
-      if (durationSort === 'asc')  return getDays(a) - getDays(b);
-      if (durationSort === 'desc') return getDays(b) - getDays(a);
-      if (dateSort === 'newest') return new Date(b.created_at) - new Date(a.created_at);
-      if (dateSort === 'oldest') return new Date(a.created_at) - new Date(b.created_at);
+      if (orderBy === 'newest') return new Date(b.created_at) - new Date(a.created_at);
+      if (orderBy === 'oldest') return new Date(a.created_at) - new Date(b.created_at);
       return 0;
     });
 
-  const activeFilters = [type !== 'all', wilaya !== 'all', durationSort !== 'none']
-    .filter(Boolean).length;
+  const activeFilters = [
+    type !== 'all',
+    wilaya !== 'all',
+    duration !== 'none',
+    remoteOnly,
+  ].filter(Boolean).length;
 
-  const resetFilters = () => { setType('all'); setWilaya('all'); setDurationSort('none'); setDateSort('newest'); };
+  const resetFilters = () => { setType('all'); setWilaya('all'); setDuration('none'); setRemoteOnly(false); setOrderBy('newest'); };
 
   const selectClass = "px-4 py-2.5 bg-white border border-gray-200 rounded-xl font-bold text-sm text-gray-700 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-50 focus:outline-none transition-all appearance-none cursor-pointer";
-  const activeSortBtn = "px-4 py-2.5 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all";
-  const inactiveSortBtn = "px-4 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl font-black text-xs uppercase tracking-widest hover:border-indigo-200 hover:text-indigo-600 transition-all";
+  const activeFilterBtn = "px-4 py-2.5 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all";
+  const inactiveFilterBtn = "px-4 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl font-black text-xs uppercase tracking-widest hover:border-indigo-200 hover:text-indigo-600 transition-all";
 
   return (
     <div className="space-y-10">
@@ -133,30 +146,54 @@ function ExploreView({ offers, loading, loadData, handleApply, onSelectOffer }) 
             </select>
           </div>
 
-          {/* Duration sort */}
+          {/* Duration checkboxes */}
           <div className="flex flex-col gap-1">
             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Duration</span>
-            <div className="flex gap-2">
-              <button onClick={() => { setDurationSort('asc'); setDateSort('none'); }} className={durationSort === 'asc' ? activeSortBtn : inactiveSortBtn}>
-                ↑ Short first
-              </button>
-              <button onClick={() => { setDurationSort('desc'); setDateSort('none'); }} className={durationSort === 'desc' ? activeSortBtn : inactiveSortBtn}>
-                ↓ Long first
-              </button>
+            <div className="flex gap-1.5">
+              {[
+                { value: 'short', label: 'Short (14-28d)' },
+                { value: 'medium', label: 'Medium (29-60d)' },
+                { value: 'long', label: 'Long (60+d)' },
+              ].map(d => (
+                <label key={d.value} className={`flex items-center gap-1.5 px-3 py-2.5 rounded-xl cursor-pointer transition-all ${duration === d.value ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-indigo-200'}`}>
+                  <input
+                    type="checkbox"
+                    className="hidden"
+                    checked={duration === d.value}
+                    onChange={() => setDuration(duration === d.value ? 'none' : d.value)}
+                  />
+                  <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">{d.label}</span>
+                </label>
+              ))}
             </div>
           </div>
 
-          {/* Date sort */}
+          {/* Order by dropdown */}
           <div className="flex flex-col gap-1">
-            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Posted</span>
-            <div className="flex gap-2">
-              <button onClick={() => { setDateSort('newest'); setDurationSort('none'); }} className={dateSort === 'newest' && durationSort === 'none' ? activeSortBtn : inactiveSortBtn}>
-                Newest
-              </button>
-              <button onClick={() => { setDateSort('oldest'); setDurationSort('none'); }} className={dateSort === 'oldest' && durationSort === 'none' ? activeSortBtn : inactiveSortBtn}>
-                Oldest
-              </button>
-            </div>
+            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Order By</span>
+            <select
+              value={orderBy}
+              onChange={e => setOrderBy(e.target.value)}
+              className={selectClass}
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+            </select>
+          </div>
+
+          {/* Remote checkbox */}
+          <div className="flex flex-col gap-1">
+            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Remote</span>
+            <label className={`flex items-center gap-2 px-4 py-2.5 rounded-xl cursor-pointer transition-all ${remoteOnly ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-indigo-200'}`}>
+              <input
+                type="checkbox"
+                className="hidden"
+                checked={remoteOnly}
+                onChange={e => setRemoteOnly(e.target.checked)}
+              />
+              <Wifi size={14} className={remoteOnly ? 'text-white' : 'text-gray-400'} />
+              <span className="text-[10px] font-black uppercase tracking-widest">Remote only</span>
+            </label>
           </div>
 
           {/* Reset */}
@@ -218,7 +255,15 @@ function ExploreView({ offers, loading, loadData, handleApply, onSelectOffer }) 
                   <div className="grid grid-cols-3 gap-4 border-t border-b border-gray-100 py-6 mb-8">
                     <div className="space-y-1">
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Location</p>
-                      <p className="text-sm font-black text-gray-900 truncate">{offer.wilaya || 'Algeria'}</p>
+                      <p className="text-sm font-black text-gray-900 truncate">
+                        {offer.is_remote ? (
+                          <span className="flex items-center gap-1 text-emerald-600">
+                            <Wifi size={12} /> Remote
+                          </span>
+                        ) : (
+                          offer.wilaya || 'Algeria'
+                        )}
+                      </p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Type</p>

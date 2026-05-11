@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  MapPin, 
-  Clock, 
-  CheckCircle2, 
-  Globe, 
+import {
+  MapPin,
+  Clock,
+  CheckCircle2,
+  Globe,
   ArrowLeft,
   Loader2,
   Zap,
-  Calendar
+  Calendar,
+  Wifi
 } from 'lucide-react';
 import { getOfferDetails, applyForOffer } from '../api/studentApi';
 import { getMediaUrl } from '../api/axios';
@@ -132,6 +133,11 @@ export default function InternshipDetailPage() {
                   {offer.wilaya && (
                     <span className="flex items-center gap-1.5 text-[11px] font-black text-gray-500 uppercase tracking-widest border border-gray-200 px-3 py-1.5 rounded-lg bg-gray-50">
                       <MapPin size={14} className="text-indigo-400" /> {offer.wilaya}
+                    </span>
+                  )}
+                  {offer.is_remote && (
+                    <span className="flex items-center gap-1.5 text-[11px] font-black text-emerald-600 uppercase tracking-widest border border-emerald-200 px-3 py-1.5 rounded-lg bg-emerald-50">
+                      <Wifi size={14} /> Remote
                     </span>
                   )}
                   {offer.type && (
@@ -274,7 +280,7 @@ export default function InternshipDetailPage() {
             <div className="space-y-4 relative z-10">
               {[
                 { label: 'Type', value: offer.type === 'paid' ? 'Paid Internship' : 'Unpaid Internship' },
-                { label: 'Location', value: offer.wilaya || 'Algeria' },
+                { label: 'Location', value: offer.is_remote ? 'Remote' : (offer.wilaya || 'Algeria') },
                 duration && { label: 'Duration', value: duration },
                 offer.start_date && { label: 'Start', value: formatDate(offer.start_date) },
                 offer.end_date && { label: 'End', value: formatDate(offer.end_date) },

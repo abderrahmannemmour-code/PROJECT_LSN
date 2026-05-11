@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
 
-from core.models import Student, Company, Skill, University
+from core.models import Student, Company, University, UNIVERSITY_EMAIL_DOMAINS
 
 
 class StudentRegisterSerializer(serializers.ModelSerializer):
@@ -19,27 +19,35 @@ class StudentRegisterSerializer(serializers.ModelSerializer):
         fields = [
             'email', 'password',
             'full_name', 'wilaya',
-            'github_link', 'portfolio_link',
         ]
 
     def validate_email(self, value):
-        """Ensure the student registers with a university email."""
-        allowed_domains = [
-            'univ.dz',
-            'edu.dz',
-            'etu.univ.dz',
-        ]
+        """
+        Ensure the student registers with one of the 5 predefined
+        university email domains. The university is auto-assigned.
+        """
         domain = value.split('@')[-1].lower()
-        if not any(domain == d or domain.endswith('.' + d) for d in allowed_domains):
+        if domain not in UNIVERSITY_EMAIL_DOMAINS:
+            allowed = ', '.join(
+                f'@{d}' for d in UNIVERSITY_EMAIL_DOMAINS.keys()
+            )
             raise serializers.ValidationError(
-                'Students must register with a university email '
-                f'(e.g. name@univ.dz). Allowed domains: {", ".join(allowed_domains)}'
+                f'Students must register with a university email. '
+                f'Allowed domains: {allowed}'
             )
         return value
 
     def create(self, validated_data):
-        """Create and return a student with encrypted password."""
+        """Create and return a student with encrypted password.
+        Automatically assigns the university based on email domain.
+        """
         password = validated_data.pop('password')
+        # Determine university from email domain
+        email = validated_data['email']
+        domain = email.split('@')[-1].lower()
+        uni_code = UNIVERSITY_EMAIL_DOMAINS[domain]
+        university = University.objects.get(code=uni_code)
+        validated_data['university'] = university
         student = Student(**validated_data)
         student.set_password(password)
         student.save()
@@ -59,7 +67,7 @@ class CompanyRegisterSerializer(serializers.ModelSerializer):
         fields = [
             'email', 'password',
             'name', 'description',
-            'wilaya', 'website', 'phone_number'
+            'wilaya', 'website',
         ]
 
     def create(self, validated_data):
@@ -73,109 +81,29 @@ class CompanyRegisterSerializer(serializers.ModelSerializer):
 
 class UserDetailSerializer(serializers.ModelSerializer):
     """Serializer for the authenticated user detail (GET /me)."""
-    profile_image = serializers.SerializerMethodField()
-    full_name = serializers.SerializerMethodField()
 
     class Meta:
         model = get_user_model()
-        fields = ['id', 'email', 'role', 'is_active', 'created_at', 'profile_image', 'full_name']
+        fields = ['id', 'email', 'role', 'is_active', 'created_at']
         read_only_fields = ['id', 'role', 'is_active', 'created_at']
-
-    def get_profile_image(self, obj):
-        if obj.role == 'student':
-            from core.models import Student
-            try:
-                student = Student.objects.get(pk=obj.pk)
-                if student.profile_image:
-                    return student.profile_image.url
-            except Student.DoesNotExist:
-                pass
-        elif obj.role == 'company':
-            from core.models import Company
-            try:
-                company = Company.objects.get(pk=obj.pk)
-                if company.logo:
-                    return company.logo.url
-            except Company.DoesNotExist:
-                pass
-        return None
-
-    def get_full_name(self, obj):
-        if obj.role == 'student':
-            from core.models import Student
-            try:
-                student = Student.objects.get(pk=obj.pk)
-                return student.full_name or obj.email.split('@')[0]
-            except Student.DoesNotExist:
-                pass
-        elif obj.role == 'company':
-            from core.models import Company
-            try:
-                company = Company.objects.get(pk=obj.pk)
-                return company.name or obj.email.split('@')[0]
-            except Company.DoesNotExist:
-                pass
-        return obj.email.split('@')[0]
-
-
-class UniversitySerializer(serializers.ModelSerializer):
-    """Serializer for university objects."""
-
-    class Meta:
-        model = University
-        fields = ['id', 'name', 'code', 'wilaya', 'logo']
-        read_only_fields = ['id']
-
-
-class SkillSerializer(serializers.ModelSerializer):
-    """Serializer for skill objects."""
-
-    class Meta:
-        model = Skill
-        fields = ['id', 'name', 'category']
-        read_only_fields = ['id']
 
 
 class StudentUpdateSerializer(serializers.ModelSerializer):
-    """Serializer for updating student profile fields."""
-    skills = serializers.PrimaryKeyRelatedField(
-        many=True,
-        queryset=Skill.objects.all(),
-        required=False
-    )
+    """Serializer for updating student personal profile fields."""
 
     class Meta:
         model = Student
         fields = [
             'id', 'email',
-            'full_name', 'birth_date', 'wilaya',
-            'university', 'academic_year',
-            'bio', 'skills',
-            'github_link', 'portfolio_link',
-            'profile_image',
-            'last_seen',
-            'internship_privacy',
+            'full_name', 'wilaya',
+            'date_of_birth',
         ]
-        read_only_fields = ['id', 'email', 'profile_image', 'last_seen']
+        read_only_fields = ['id', 'email']
         extra_kwargs = {
             'full_name': {'required': False},
-            'birth_date': {'required': False},
             'wilaya': {'required': False},
-            'university': {'required': False},
-            'academic_year': {'required': False},
-            'bio': {'required': False, 'allow_blank': True},
-            'github_link': {'required': False, 'allow_blank': True},
-            'portfolio_link': {'required': False, 'allow_blank': True},
-            'internship_privacy': {'required': False},
+            'date_of_birth': {'required': False},
         }
-
-    def to_representation(self, instance):
-        """Show full skill and university objects in GET requests."""
-        rep = super().to_representation(instance)
-        rep['skills'] = SkillSerializer(instance.skills.all(), many=True).data
-        if instance.university:
-            rep['university'] = UniversitySerializer(instance.university).data
-        return rep
 
 
 class CompanyUpdateSerializer(serializers.ModelSerializer):
@@ -187,7 +115,6 @@ class CompanyUpdateSerializer(serializers.ModelSerializer):
             'id', 'email',
             'name', 'description',
             'wilaya', 'website',
-            'phone_number', 'industry',
         ]
         read_only_fields = ['id', 'email']
         extra_kwargs = {
@@ -195,8 +122,6 @@ class CompanyUpdateSerializer(serializers.ModelSerializer):
             'description': {'required': False},
             'wilaya': {'required': False},
             'website': {'required': False, 'allow_blank': True},
-            'phone_number': {'required': False, 'allow_blank': True},
-            'industry': {'required': False, 'allow_blank': True},
         }
 
 class LogoImageSerializer(serializers.ModelSerializer):
