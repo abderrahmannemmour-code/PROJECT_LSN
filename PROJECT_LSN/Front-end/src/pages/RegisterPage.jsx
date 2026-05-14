@@ -58,7 +58,8 @@ export default function RegisterPage() {
     if (!formData.email) {
       errs.email = 'Email is required';
     } else if (formData.role === 'student') {
-      const domain = formData.email.split('@')[-1]?.toLowerCase();
+      const parts = formData.email.split('@');
+      const domain = parts[parts.length - 1]?.toLowerCase();
       const allowed = ALLOWED_STUDENT_DOMAINS.map(d => d.domain);
       if (!allowed.includes(domain)) {
         errs.email = `Students must register with a university email. Allowed: ${ALLOWED_STUDENT_DOMAINS.map(d => d.label).join(', ')}`;

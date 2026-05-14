@@ -56,6 +56,7 @@ class StudentOfferListSerializer(serializers.ModelSerializer):
     company_logo = serializers.ImageField(source='company.logo', read_only=True)
     duration_display = serializers.SerializerMethodField()
     required_skills = serializers.SerializerMethodField()
+    already_applied = serializers.SerializerMethodField()
 
     def get_duration_display(self, obj):
         return obj.duration_display
@@ -65,6 +66,16 @@ class StudentOfferListSerializer(serializers.ModelSerializer):
             obj.offer_skills.select_related('skill').all(),
             many=True,
         ).data
+
+    def get_already_applied(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        from core.models import Internship
+        return Internship.objects.filter(
+            student_id=request.user.pk,
+            offer=obj,
+        ).exists()
 
     class Meta:
         model = InternshipOffer
@@ -81,6 +92,7 @@ class StudentOfferListSerializer(serializers.ModelSerializer):
             'required_skills',
             'status',
             'created_at',
+            'already_applied',
         ]
 
 
@@ -93,6 +105,7 @@ class StudentOfferDetailSerializer(serializers.ModelSerializer):
     company_logo = serializers.ImageField(source='company.logo', read_only=True)
     company_wilaya = serializers.CharField(source='company.wilaya', read_only=True)
     company_website = serializers.URLField(source='company.website', read_only=True)
+    company_details = serializers.SerializerMethodField()
     duration_display = serializers.SerializerMethodField()
     required_skills = serializers.SerializerMethodField()
     already_applied = serializers.SerializerMethodField()
@@ -119,10 +132,24 @@ class StudentOfferDetailSerializer(serializers.ModelSerializer):
             offer=obj,
         ).exists()
 
+    def get_company_details(self, obj):
+        company = obj.company
+        if not company:
+            return None
+        return {
+            'name': company.name,
+            'description': company.description,
+            'industry': getattr(company, 'industry', None),
+            'wilaya': company.wilaya,
+            'phone_number': getattr(company, 'phone_number', None),
+            'website': company.website,
+        }
+
     class Meta:
         model = InternshipOffer
         fields = [
             'id',
+            'company_details',
             'company_name',
             'company_logo',
             'company_wilaya',

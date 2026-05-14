@@ -288,3 +288,141 @@ class RejectApplicantView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+# ── Statistics views ─────────────────────────────────────────────────
+
+@extend_schema(tags=['Company Stats'])
+class CompanyStatsView(APIView):
+    """
+    GET /api/company/stats/
+    Aggregated statistics for the company dashboard.
+    Returns overall counts and per-offer breakdowns.
+    """
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsCompany]
+
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
+    def get(self, request):
+        company = get_company(request)
+        internships = Internship.objects.filter(company=company)
+
+        overall = {
+            'total': internships.count(),
+            'pending': internships.filter(
+                status=Internship.Status.PENDING,
+            ).count(),
+            'accepted': internships.filter(
+                status=Internship.Status.ACCEPTED_BY_COMPANY,
+            ).count(),
+            'validated': internships.filter(
+                status=Internship.Status.VALIDATED,
+            ).count(),
+            'rejected': internships.filter(
+                status=Internship.Status.REJECTED,
+            ).count(),
+        }
+
+        offers = InternshipOffer.objects.filter(company=company)
+        offers_data = []
+        for offer in offers:
+            apps = internships.filter(offer=offer)
+            offers_data.append({
+                'offer_id': offer.id,
+                'offer_title': offer.title,
+                'total': apps.count(),
+                'pending': apps.filter(
+                    status=Internship.Status.PENDING,
+                ).count(),
+                'accepted': apps.filter(
+                    status=Internship.Status.ACCEPTED_BY_COMPANY,
+                ).count(),
+                'validated': apps.filter(
+                    status=Internship.Status.VALIDATED,
+                ).count(),
+                'rejected': apps.filter(
+                    status=Internship.Status.REJECTED,
+                ).count(),
+            })
+
+        return Response(
+            {'overall': overall, 'offers': offers_data},
+            status=status.HTTP_200_OK,
+        )
+
+
+# ── Offer image upload ───────────────────────────────────────────────
+
+@extend_schema(tags=['Company Offers'])
+class OfferImageUploadView(APIView):
+    """
+    PATCH /api/company/offers/<id>/upload-image/
+    Upload or replace the photo for an offer.
+    """
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsCompany]
+    parser_classes = [MultiPartParser, FormParser]
+
+    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
+    def patch(self, request, pk):
+        company = get_company(request)
+        try:
+            offer = InternshipOffer.objects.get(pk=pk, company=company)
+        except InternshipOffer.DoesNotExist:
+            return Response(
+                {'detail': 'Offer not found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        image = request.FILES.get('image')
+        if not image:
+            return Response(
+                {'detail': 'No image file provided.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        offer.photo = image
+        offer.save(update_fields=['photo'])
+        return Response(
+            {'detail': 'Image uploaded.', 'photo': offer.photo.url},
+            status=status.HTTP_200_OK,
+        )
+
+
+# ── Reset data ───────────────────────────────────────────────────────
+
+@extend_schema(tags=['Company'])
+class CompanyResetDataView(APIView):
+    """
+    POST /api/company/reset-data/
+    Deletes all the company's offers and related internships.
+    Requires the company's password for confirmation.
+    """
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsCompany]
+
+    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT, 403: OpenApiTypes.OBJECT})
+    def post(self, request):
+        password = request.data.get('password')
+        if not password or not request.user.check_password(password):
+            return Response(
+                {'detail': 'Invalid password.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        company = get_company(request)
+        deleted_offers = InternshipOffer.objects.filter(
+            company=company,
+        ).delete()
+        deleted_internships = Internship.objects.filter(
+            company=company,
+        ).delete()
+
+        return Response(
+            {
+                'detail': 'All company data has been reset.',
+                'deleted_offers': deleted_offers[0],
+                'deleted_internships': deleted_internships[0],
+            },
+            status=status.HTTP_200_OK,
+        )

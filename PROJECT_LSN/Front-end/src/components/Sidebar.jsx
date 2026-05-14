@@ -98,11 +98,11 @@ export default function Sidebar({ role }) {
             {user?.profile_image ? (
               <img src={getMediaUrl(user.profile_image)} alt="User" className="w-full h-full object-cover" />
             ) : (
-              <span>{(user?.full_name || user?.email || 'U')[0].toUpperCase()}</span>
+              <span>{(user?.full_name || user?.name || user?.email || 'U')[0].toUpperCase()}</span>
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-gray-900 truncate tracking-tight">{user?.full_name || user?.email?.split('@')[0]}</p>
+            <p className="text-sm font-bold text-gray-900 truncate tracking-tight">{user?.full_name || user?.name || user?.email?.split('@')[0]}</p>
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate">
               {role === 'admin' ? 'System Admin' : 'View Profile →'}
             </p>

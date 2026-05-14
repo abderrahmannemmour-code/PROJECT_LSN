@@ -75,7 +75,7 @@ export default function StudentOfferModal({ offerId, onClose, onApplySuccess }) 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-gray-900/40 backdrop-blur-md animate-fade-in" onClick={onClose}>
       <div 
-        className="relative w-full max-w-4xl bg-white rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-slide-up"
+        className="relative w-full max-w-4xl bg-white rounded-[32px] shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         {loading ? (
@@ -98,12 +98,12 @@ export default function StudentOfferModal({ offerId, onClose, onApplySuccess }) 
               
               <button 
                 onClick={onClose}
-                className="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white transition-all"
+                className="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white transition-all z-10"
               >
                 <X size={20} />
               </button>
 
-              <div className="absolute -bottom-10 left-8 flex items-end gap-6">
+              <div className="absolute -bottom-10 left-8 flex items-end gap-6 z-10">
                 <div className="w-24 h-24 rounded-2xl bg-white flex items-center justify-center text-indigo-600 border-4 border-white shadow-lg overflow-hidden shrink-0">
                   {offer.company_logo ? (
                     <img src={getMediaUrl(offer.company_logo)} alt="Logo" className="w-full h-full object-cover" />
@@ -115,7 +115,7 @@ export default function StudentOfferModal({ offerId, onClose, onApplySuccess }) 
             </div>
 
             {/* CONTENT */}
-            <div className="flex-1 overflow-y-auto p-8 pt-16 space-y-10">
+            <div className="flex-1 p-8 pt-16 space-y-10">
               
               {showCompany && offer.company_details ? (
                 /* COMPANY PROFILE VIEW */

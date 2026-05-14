@@ -10,8 +10,8 @@ export const deleteOffer = (id) => api.delete(`/api/company/offers/${id}/`);
 // 4.2 Applicant Management
 export const getOfferApplicants = (id) => api.get(`/api/company/offers/${id}/applicants/`);
 export const getAllCompanyApplications = () => api.get('/api/company/applications/');
-export const acceptApplication = (id) => api.patch(`/api/company/applications/${id}/accept/`);
-export const rejectApplication = (id) => api.patch(`/api/company/applications/${id}/reject/`);
+export const acceptApplication = (id) => api.post(`/api/company/applications/${id}/accept/`);
+export const rejectApplication = (id) => api.post(`/api/company/applications/${id}/reject/`);
 
 // Profile
 export const getCompanyProfile = () => api.get('/api/user/me/company/');
@@ -37,6 +37,6 @@ export const getCompanyStats = () => api.get('/api/company/stats/');
 export const getCompanyOfferStats = (id) => api.get(`/api/company/offers/${id}/stats/`);
 export const resetCompanyData = (password) => api.post('/api/company/reset-data/', { password });
 
-// 4.4 Notifications
-export const getCompanyNotifications = () => api.get('/api/company/notifications/');
-export const markCompanyNotificationsRead = () => api.patch('/api/company/notifications/mark-read/');
+// 4.4 Notifications (uses the shared core notification system)
+export const getCompanyNotifications = () => api.get('/api/notifications/');
+export const markCompanyNotificationsRead = () => api.patch('/api/notifications/read-all/');

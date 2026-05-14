@@ -107,7 +107,7 @@ export default function DigitalCVPage() {
     setMySkills(res.data);
   };
 
-  const mySkillIds = mySkills.map(s => s.skill);
+  const mySkillIds = mySkills.map(s => s.skill?.id);
   const availableSkills = allSkills.filter(s => !mySkillIds.includes(s.id));
 
   if (loading) return (
@@ -249,14 +249,11 @@ export default function DigitalCVPage() {
                   <div>
                     <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3">Skills</p>
                     <div className="flex flex-wrap gap-2">
-                      {mySkills.map(s => {
-                        const skill = allSkills.find(sk => sk.id === s.skill);
-                        return (
-                          <span key={s.id} className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[10px] uppercase tracking-widest border border-indigo-100">
-                            {skill?.name || s.skill}
-                          </span>
-                        );
-                      })}
+                      {mySkills.map(s => (
+                        <span key={s.id} className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[10px] uppercase tracking-widest border border-indigo-100">
+                          {s.skill?.name}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -373,17 +370,14 @@ export default function DigitalCVPage() {
                 {mySkills.length === 0 && (
                   <p className="text-gray-400 font-bold text-sm">No skills added yet.</p>
                 )}
-                {mySkills.map(s => {
-                  const skill = allSkills.find(sk => sk.id === s.skill);
-                  return (
-                    <span key={s.id} className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-2xl text-xs font-black uppercase tracking-widest border border-indigo-100">
-                      {skill?.name || s.skill}
-                      <button type="button" onClick={() => handleRemoveSkill(s.id)} className="hover:text-rose-500 transition-colors">
-                        <X size={14} />
-                      </button>
-                    </span>
-                  );
-                })}
+                {mySkills.map(s => (
+                  <span key={s.id} className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-2xl text-xs font-black uppercase tracking-widest border border-indigo-100">
+                    {s.skill?.name}
+                    <button type="button" onClick={() => handleRemoveSkill(s.id)} className="hover:text-rose-500 transition-colors">
+                      <X size={14} />
+                    </button>
+                  </span>
+                ))}
               </div>
 
               {/* Available skills */}

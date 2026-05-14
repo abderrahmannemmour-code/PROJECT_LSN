@@ -126,32 +126,32 @@ export default function EditProfilePage() {
           {/* AVATAR SECTION */}
           <div className="bg-white rounded-[40px] border border-gray-100 shadow-sm p-10">
             <h2 className="text-xl font-black text-gray-900 mb-8 tracking-tight">Profile Photo</h2>
-            <div className="flex items-center gap-8">
+            <div className="flex flex-col md:flex-row items-center gap-8">
               <div className="relative group">
-                <div className="w-28 h-28 rounded-[28px] bg-indigo-50 border-4 border-white shadow-xl overflow-hidden flex items-center justify-center">
+                <div className="w-32 h-32 rounded-[32px] bg-indigo-50 border-4 border-white shadow-xl overflow-hidden flex items-center justify-center">
                   {uploadingImg ? (
                     <Loader2 className="animate-spin text-indigo-600" size={32} />
                   ) : profileImage ? (
                     <img src={getMediaUrl(profileImage)} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-4xl font-black text-indigo-600">
+                    <span className="text-5xl font-black text-indigo-600">
                       {(profile.full_name || user?.email || 'S')[0].toUpperCase()}
                     </span>
                   )}
                 </div>
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+              </div>
+              <div className="flex flex-col items-center md:items-start text-center md:text-left">
+                <p className="font-black text-gray-900 text-2xl mb-1">{profile.full_name || 'Your Name'}</p>
+                <p className="text-gray-500 font-bold text-sm mb-4">{user?.email}</p>
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="absolute -bottom-2 -right-2 w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg hover:bg-indigo-700 transition-all"
+                  className="flex items-center gap-2 px-6 py-3 bg-indigo-50 text-indigo-600 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-indigo-100 transition-all border border-indigo-100"
                 >
-                  <Camera size={18} />
+                  <Camera size={16} /> Upload Photo
                 </button>
-                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-              </div>
-              <div>
-                <p className="font-black text-gray-900 text-xl">{profile.full_name || 'Your Name'}</p>
-                <p className="text-gray-500 font-bold text-sm mt-1">{user?.email}</p>
-                <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-3">
+                <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-4">
                   Student · {profile.wilaya || 'Location not set'}
                 </p>
               </div>

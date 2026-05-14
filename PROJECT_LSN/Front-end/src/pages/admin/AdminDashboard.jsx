@@ -28,7 +28,6 @@ import {
   getStatsStudents,
   getStatsTrends,
   getAdminNotifications,
-  resetAdminData
 } from '../../api/adminApi';
 import { getMediaUrl } from '../../api/axios';
 import { 
@@ -388,12 +387,6 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedInternship, setSelectedInternship] = useState(null);
 
-  // Reset Modal State
-  const [showResetModal, setShowResetModal] = useState(false);
-  const [resetPassword, setResetPassword] = useState('');
-  const [resetting, setResetting] = useState(false);
-  const [resetError, setResetError] = useState('');
-
   useEffect(() => { 
     loadData(true); 
     const interval = setInterval(() => {
@@ -458,22 +451,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleResetSubmit = async (e) => {
-    e.preventDefault();
-    setResetting(true);
-    setResetError('');
-    try {
-      await resetAdminData(resetPassword);
-      setShowResetModal(false);
-      setResetPassword('');
-      loadData(true);
-    } catch (err) {
-      setResetError(err.response?.data?.detail || 'Invalid password or reset failed.');
-    } finally {
-      setResetting(false);
-    }
-  };
-
   return (
     <DashboardLayout role="admin">
       <div className="p-6 md:p-8 lg:p-12 space-y-8 animate-fade-in bg-gray-50 min-h-screen pb-24">
@@ -486,12 +463,6 @@ export default function AdminDashboard() {
               Welcome, {user?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}. Validate internships and monitor metrics.
             </p>
           </div>
-          <button 
-            onClick={() => setShowResetModal(true)}
-            className="px-6 py-3 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-600 hover:text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-sm"
-          >
-            Reset Data
-          </button>
         </div>
 
         {loading ? (
@@ -722,51 +693,6 @@ export default function AdminDashboard() {
           </Modal>
         )}
           </>
-        )}
-        {/* RESET MODAL */}
-        {showResetModal && (
-          <div className="fixed inset-0 z-[100] bg-gray-900/40 backdrop-blur-md flex items-center justify-center p-6 animate-fade-in" onClick={() => setShowResetModal(false)}>
-            <div className="bg-white rounded-[32px] p-8 sm:p-12 max-w-md w-full shadow-2xl shadow-rose-900/10 border border-rose-50 animate-slide-up" onClick={e => e.stopPropagation()}>
-              <div className="w-20 h-20 bg-rose-50 rounded-3xl flex items-center justify-center mx-auto mb-8 text-rose-600 shadow-inner border border-rose-100/50">
-                <Globe size={36} className="text-rose-500" />
-              </div>
-              <h3 className="text-3xl font-black text-gray-900 mb-4 tracking-tight leading-none text-center">Reset Dashboard</h3>
-              <p className="text-gray-500 font-medium mb-6 leading-relaxed text-sm text-center">
-                This action will permanently delete <span className="font-bold text-rose-600">ALL platform data</span> including offers, applications, and notifications. Enter your password to confirm.
-              </p>
-              
-              <form onSubmit={handleResetSubmit} className="space-y-6">
-                <div>
-                  <input
-                    type="password"
-                    required
-                    placeholder="Enter admin password"
-                    value={resetPassword}
-                    onChange={e => setResetPassword(e.target.value)}
-                    className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl font-bold text-gray-900 focus:bg-white focus:border-rose-500 focus:outline-none transition-all text-center"
-                  />
-                  {resetError && <p className="text-rose-500 text-xs font-bold mt-2 text-center">{resetError}</p>}
-                </div>
-                
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <button 
-                    type="button"
-                    onClick={() => setShowResetModal(false)}
-                    className="flex-1 py-4 bg-gray-50 text-gray-600 rounded-2xl font-black uppercase tracking-[2px] text-[10px] hover:bg-gray-100 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit"
-                    disabled={resetting || !resetPassword}
-                    className="flex-1 py-4 bg-rose-600 text-white rounded-2xl font-black uppercase tracking-[2px] text-[10px] shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all disabled:opacity-50"
-                  >
-                    {resetting ? <Loader2 size={16} className="animate-spin mx-auto" /> : 'Confirm Wipe'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
         )}
 
       </div>

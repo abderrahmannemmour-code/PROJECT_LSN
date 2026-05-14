@@ -20,7 +20,7 @@ export const getOffers = (searchParams = {}) => {
   return api.get(url);
 };
 export const getMyApplications = () => api.get('/api/student/applications/');
-export const applyForOffer = (offerId) => api.post('/api/student/applications/', { offer_id: offerId });
+export const applyForOffer = (offerId) => api.post(`/api/student/offers/${offerId}/apply/`);
 export const getOfferDetails = (offerId) => api.get(`/api/student/offers/${offerId}/`);
 
 // Student Profile & CV
@@ -42,16 +42,13 @@ export const getMySkills = () => api.get('/api/student/me/skills/');
 export const addSkill = (skillId) => api.post('/api/student/me/skills/add/', { skill_id: skillId });
 export const removeSkill = (skillId) => api.delete(`/api/student/me/skills/${skillId}/remove/`);
 
-// Universities
-export const getUniversities = () => api.get('/api/student/universities/');
+// Student Notifications (uses the shared core notification system)
+export const getStudentNotifications = () => api.get('/api/notifications/');
+export const markStudentNotificationRead = (id) => api.patch(`/api/notifications/${id}/read/`);
 
-// Student Notifications
-export const getStudentNotifications = () => api.get('/api/administration/student/notifications/');
-export const markStudentNotificationRead = (id) => api.patch(`/api/administration/student/notifications/${id}/read/`);
-
-// Student Agreements
+// Student Agreements (download via student application document endpoint)
 export const downloadStudentAgreement = (internshipId) => {
-  return api.get(`/api/administration/student/agreements/${internshipId}/download/`, {
+  return api.get(`/api/student/applications/${internshipId}/document/`, {
     responseType: 'blob',
   });
 };

@@ -8,9 +8,10 @@ import DashboardLayout from '../../components/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import {
   getStudentProfile, updateStudentProfile, uploadProfileImage,
-  getMyCV, updateMyCV, getUniversities,
+  getMyCV, updateMyCV,
   getAllSkills, getMySkills, addSkill, removeSkill
 } from '../../api/studentApi';
+import { getUniversities } from '../../api/publicApi';
 import { getMediaUrl } from '../../api/axios';
 
 export default function ProfilePage() {

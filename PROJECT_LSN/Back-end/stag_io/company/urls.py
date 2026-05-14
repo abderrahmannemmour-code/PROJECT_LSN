@@ -37,4 +37,22 @@ urlpatterns = [
         views.RejectApplicantView.as_view(),
         name='application-reject',
     ),
-]
+    # Statistics
+    path(
+        'stats/',
+        views.CompanyStatsView.as_view(),
+        name='company-stats',
+    ),
+    # Offer image upload
+    path(
+        'offers/<int:pk>/upload-image/',
+        views.OfferImageUploadView.as_view(),
+        name='offer-upload-image',
+    ),
+    # Reset data
+    path(
+        'reset-data/',
+        views.CompanyResetDataView.as_view(),
+        name='company-reset-data',
+    ),
+]

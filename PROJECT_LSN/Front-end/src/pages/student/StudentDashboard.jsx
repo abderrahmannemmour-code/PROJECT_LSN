@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import {
   Search,
   Bookmark,
@@ -11,7 +11,8 @@ import {
   FileText,
   Loader2,
   Download,
-  Wifi
+  Wifi,
+  Bell
 } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import StatusBadge from '../../components/StatusBadge';
@@ -35,8 +36,21 @@ function ExploreView({ offers, loading, loadData, handleApply, onSelectOffer }) 
   const [duration, setDuration]     = useState('none'); // 'short' | 'medium' | 'long'
   const [orderBy, setOrderBy]       = useState('newest');
 
-  // Collect unique wilayas from loaded offers
-  const wilayas = [...new Set(offers.map(o => o.wilaya).filter(Boolean))].sort();
+  const wilayas = [
+    "01 - Adrar", "02 - Chlef", "03 - Laghouat", "04 - Oum El Bouaghi", "05 - Batna",
+    "06 - Béjaïa", "07 - Biskra", "08 - Béchar", "09 - Blida", "10 - Bouira",
+    "11 - Tamanrasset", "12 - Tébessa", "13 - Tlemcen", "14 - Tiaret", "15 - Tizi Ouzou",
+    "16 - Alger", "17 - Djelfa", "18 - Jijel", "19 - Sétif", "20 - Saïda",
+    "21 - Skikda", "22 - Sidi Bel Abbès", "23 - Annaba", "24 - Guelma", "25 - Constantine",
+    "26 - Médéa", "27 - Mostaganem", "28 - M'Sila", "29 - Mascara", "30 - Ouargla",
+    "31 - Oran", "32 - El Bayadh", "33 - Illizi", "34 - Bordj Bou Arréridj", "35 - Boumerdès",
+    "36 - El Tarf", "37 - Tindouf", "38 - Tissemsilt", "39 - El Oued", "40 - Khenchela",
+    "41 - Souk Ahras", "42 - Tipaza", "43 - Mila", "44 - Aïn Defla", "45 - Naâma",
+    "46 - Aïn Témouchent", "47 - Ghardaïa", "48 - Relizane",
+    "49 - El M'Ghair", "50 - El Meniaa", "51 - Ouled Djellal", "52 - Bordj Baji Mokhtar",
+    "53 - Béni Abbès", "54 - Timimoun", "55 - Touggourt", "56 - Djanet",
+    "57 - In Salah", "58 - In Guezzam"
+  ];
 
   // Apply all client-side filters & sorts
   const filteredOffers = offers
@@ -49,11 +63,10 @@ function ExploreView({ offers, loading, loadData, handleApply, onSelectOffer }) 
         o.company_name?.toLowerCase().includes(search.toLowerCase());
 
       if (duration !== 'none') {
-        if (!o.start_date || !o.end_date) return false;
-        const days = (new Date(o.end_date) - new Date(o.start_date)) / (1000 * 60 * 60 * 24);
-        if (duration === 'short' && (days < 14 || days > 28)) return false;
-        if (duration === 'medium' && (days < 29 || days > 60)) return false;
-        if (duration === 'long' && days <= 60) return false;
+        if (!o.duration_months) return false;
+        if (duration === 'short' && o.duration_months > 1) return false;
+        if (duration === 'medium' && o.duration_months !== 2) return false;
+        if (duration === 'long' && o.duration_months < 3) return false;
       }
 
       return matchesType && matchesWilaya && matchesRemote && matchesSearch;
@@ -587,6 +600,7 @@ export default function StudentDashboard() {
           <Route path="/notifications" element={
             <NotificationsView notifications={notifications} loading={loadingNotifs} handleDownloadAgreement={handleDownloadAgreement} markAsRead={handleMarkAsRead} />
           } />
+          <Route path="*" element={<Navigate to="/student/internships" replace />} />
         </Routes>
       </div>
 
