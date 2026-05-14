@@ -200,8 +200,8 @@ function InternshipsView({ offers, loading, handleEdit, handleDelete, setShowOff
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-gray-100 bg-indigo-50 flex items-center justify-center">
-                          {offer.image ? (
-                            <img src={getMediaUrl(offer.image)} alt="offer" className="w-full h-full object-cover" />
+                          {offer.photo ? (
+                            <img src={getMediaUrl(offer.photo)} alt="offer" className="w-full h-full object-cover" />
                           ) : (
                             <span className="text-xs font-black text-indigo-600 uppercase tracking-tighter">{(offer.title || 'In').substring(0, 2)}</span>
                           )}
@@ -221,7 +221,7 @@ function InternshipsView({ offers, loading, handleEdit, handleDelete, setShowOff
                       </td>
                     <td className="px-6 py-5">
                       <span className="px-2 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-indigo-100">
-                        {offer.duration_months}m
+                        {offer.duration_display || 'N/A'}
                       </span>
                     </td>
                     <td className="px-6 py-5">
@@ -294,8 +294,8 @@ function CompanyOfferDetailView({ offers, handleEdit, handleAppResponse }) {
       <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
         {/* HERO BANNER */}
         <div className="h-48 w-full bg-indigo-50 relative border-b border-gray-100">
-          {offer.image ? (
-             <img src={getMediaUrl(offer.image)} alt={offer.title} className="w-full h-full object-cover" />
+          {offer.photo ? (
+             <img src={getMediaUrl(offer.photo)} alt={offer.title} className="w-full h-full object-cover" />
           ) : (
              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-indigo-100">
                 <span className="text-6xl font-black text-indigo-200 uppercase tracking-tighter">
@@ -705,10 +705,10 @@ export default function CompanyDashboard() {
           requirements: offerForm.requirements,
           is_active: offerForm.is_active,
           type: offerForm.type,
-          salary: offerForm.type === 'paid' ? offerForm.salary : null,
+          salary_per_week: offerForm.type === 'paid' ? offerForm.salary : null,
           start_date: offerForm.start_date || null,
           end_date: offerForm.end_date || null,
-          skills: offerForm.skills,
+          skill_ids: offerForm.skills,
           is_remote: offerForm.is_remote,
         });
         savedOffer = res.data;
@@ -720,10 +720,10 @@ export default function CompanyDashboard() {
           requirements: offerForm.requirements,
           is_active: offerForm.is_active,
           type: offerForm.type,
-          salary: offerForm.type === 'paid' ? offerForm.salary : null,
+          salary_per_week: offerForm.type === 'paid' ? offerForm.salary : null,
           start_date: offerForm.start_date || null,
           end_date: offerForm.end_date || null,
-          skills: offerForm.skills,
+          skill_ids: offerForm.skills,
           is_remote: offerForm.is_remote,
         });
         savedOffer = res.data;
@@ -753,7 +753,7 @@ export default function CompanyDashboard() {
       is_active: offer.is_active,
       imageFile: null,
       type: offer.type || 'unpaid',
-      salary: offer.salary || '',
+      salary: offer.salary_per_week || '',
       start_date: offer.start_date || '',
       end_date: offer.end_date || '',
       skills: offer.skills || [],
@@ -794,7 +794,7 @@ export default function CompanyDashboard() {
           <Route path="/dashboard" element={<OverviewView stats={companyStats} setShowOfferModal={setShowOfferModal} />} />
           <Route path="/internships" element={<InternshipsView offers={offers} loading={loadingOffers} handleEdit={handleEdit} handleDelete={handleDelete} setShowOfferModal={setShowOfferModal} setEditingOffer={setEditingOffer} setOfferForm={setOfferForm} />} />
           <Route path="/internships/:id" element={<CompanyOfferDetailView offers={offers} handleEdit={handleEdit} handleAppResponse={handleAppResponse} />} />
-          <Route path="/stats" element={<StatsView stats={companyStats} />} />
+          <Route path="/stats" element={<OverviewView stats={companyStats} setShowOfferModal={setShowOfferModal} />} />
         </Routes>
 
         {showOfferModal && (
