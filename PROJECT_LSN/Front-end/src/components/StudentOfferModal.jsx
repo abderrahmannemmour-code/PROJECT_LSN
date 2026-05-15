@@ -85,9 +85,9 @@ export default function StudentOfferModal({ offerId, onClose, onApplySuccess }) 
         ) : offer ? (
           <>
             {/* HERO BANNER */}
-            <div className="relative h-48 sm:h-64 bg-indigo-900 shrink-0">
-              {offer.image ? (
-                <img src={getMediaUrl(offer.image)} alt="Cover" className="w-full h-full object-cover opacity-80 mix-blend-overlay" />
+            <div className="relative h-48 sm:h-64 bg-gray-100 shrink-0">
+              {offer.photo ? (
+                <img src={getMediaUrl(offer.photo)} alt="Cover" className="w-full h-full object-cover" />
               ) : offer.company_logo ? (
                 <div className="w-full h-full bg-gradient-to-br from-indigo-900 to-indigo-700 flex items-center justify-center">
                   <img src={getMediaUrl(offer.company_logo)} alt="Logo" className="w-32 h-32 object-contain opacity-20" />
@@ -197,16 +197,28 @@ export default function StudentOfferModal({ offerId, onClose, onApplySuccess }) 
 
                   {/* QUICK STATS */}
                   <div className="grid grid-cols-2 gap-4 border-y border-gray-100 py-6">
-                    {offer.duration_months && (
+                    {offer.duration_display && (
                       <div className="space-y-1">
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5"><Clock size={12} /> Duration</p>
-                        <p className="text-lg font-black text-gray-900">{offer.duration_months} {offer.duration_months === 1 ? 'Month' : 'Months'}</p>
+                        <p className="text-lg font-black text-gray-900">{offer.duration_display}</p>
                       </div>
                     )}
-                    {offer.salary && (
+                    {offer.type === 'paid' && offer.salary_per_week && (
                       <div className="space-y-1">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5"><Zap size={12} /> Stipend</p>
-                        <p className="text-lg font-black text-gray-900">{offer.salary} DZD/mo</p>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5"><Zap size={12} /> Salary</p>
+                        <p className="text-lg font-black text-emerald-600">{offer.salary_per_week} DA/week</p>
+                      </div>
+                    )}
+                    {offer.start_date && (
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5"><Calendar size={12} /> Start Date</p>
+                        <p className="text-sm font-black text-gray-900">{new Date(offer.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                      </div>
+                    )}
+                    {offer.end_date && (
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5"><Calendar size={12} /> End Date</p>
+                        <p className="text-sm font-black text-gray-900">{new Date(offer.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                       </div>
                     )}
                   </div>
@@ -237,11 +249,11 @@ export default function StudentOfferModal({ offerId, onClose, onApplySuccess }) 
                   )}
                   
                   {/* SKILLS */}
-                  {offer.skills_details?.length > 0 && (
+                  {offer.required_skills?.length > 0 && (
                     <section>
                       <h2 className="text-xl font-black text-gray-900 tracking-tight mb-4">Required Skills</h2>
                       <div className="flex flex-wrap gap-2">
-                        {offer.skills_details.map((skill, idx) => (
+                        {offer.required_skills.map((skill, idx) => (
                           <span key={idx} className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg font-black text-[10px] uppercase tracking-widest border border-indigo-100">
                             {skill.name}
                           </span>

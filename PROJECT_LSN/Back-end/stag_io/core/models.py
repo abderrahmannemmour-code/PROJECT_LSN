@@ -208,6 +208,8 @@ class Company(User):
     logo = models.ImageField(null=True, blank=True, upload_to=logo_image_file_path)
     wilaya = models.CharField(max_length=100, choices=ALGERIAN_WILAYAS)
     website = models.URLField(max_length=255, blank=True)
+    phone_number = models.CharField(max_length=30, blank=True)
+    industry = models.CharField(max_length=100, blank=True)
 
     class Meta:
         verbose_name = 'Company'

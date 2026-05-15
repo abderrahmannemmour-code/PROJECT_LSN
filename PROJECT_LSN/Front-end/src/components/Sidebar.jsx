@@ -61,7 +61,7 @@ export default function Sidebar({ role }) {
       </div>
 
       {/* NAVIGATION */}
-      <nav className="flex-1 px-6 space-y-2">
+      <nav className="flex-1 px-6 space-y-2 overflow-y-auto pb-4">
         {menuItems.map((item) => (
           <NavLink
             key={item.name}
@@ -95,8 +95,8 @@ export default function Sidebar({ role }) {
           className={`flex items-center gap-3 px-3 py-4 mb-4 border-b border-gray-100 rounded-2xl transition-all ${(role === 'student' || role === 'company') ? 'cursor-pointer hover:bg-gray-50 group' : ''}`}
         >
           <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center font-black text-indigo-600 overflow-hidden shrink-0 border border-indigo-200 shadow-sm group-hover:ring-2 group-hover:ring-indigo-300 transition-all">
-            {user?.profile_image ? (
-              <img src={getMediaUrl(user.profile_image)} alt="User" className="w-full h-full object-cover" />
+            {user?.profile_image || user?.logo ? (
+              <img src={getMediaUrl(user.profile_image || user.logo)} alt="User" className="w-full h-full object-cover" />
             ) : (
               <span>{(user?.full_name || user?.name || user?.email || 'U')[0].toUpperCase()}</span>
             )}
@@ -119,16 +119,12 @@ export default function Sidebar({ role }) {
           </button>
         )}
 
-        <div className="space-y-1">
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-500 font-bold text-xs hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all group">
-            <HelpCircle size={18} className="group-hover:text-indigo-600 transition-colors" />
-            <span>Help Center</span>
-          </button>
+        <div className="pt-2">
           <button 
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 text-gray-500 font-bold text-xs hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all group"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3.5 text-gray-400 font-bold text-xs uppercase tracking-widest hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all group border border-transparent hover:border-rose-100"
           >
-            <LogOut size={18} />
+            <LogOut size={16} className="group-hover:-translate-x-1 transition-transform" />
             <span>Sign Out</span>
           </button>
         </div>

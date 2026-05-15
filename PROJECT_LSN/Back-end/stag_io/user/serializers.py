@@ -140,6 +140,7 @@ class CompanyUpdateSerializer(serializers.ModelSerializer):
             'id', 'email',
             'name', 'description',
             'wilaya', 'website', 'logo',
+            'phone_number', 'industry',
         ]
         read_only_fields = ['id', 'email', 'logo']
         extra_kwargs = {
@@ -147,6 +148,8 @@ class CompanyUpdateSerializer(serializers.ModelSerializer):
             'description': {'required': False},
             'wilaya': {'required': False},
             'website': {'required': False, 'allow_blank': True},
+            'phone_number': {'required': False, 'allow_blank': True},
+            'industry': {'required': False, 'allow_blank': True},
         }
 
 class LogoImageSerializer(serializers.ModelSerializer):

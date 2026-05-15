@@ -246,8 +246,8 @@ function ExploreView({ offers, loading, loadData, handleApply, onSelectOffer }) 
           {filteredOffers.map((offer) => (
             <div key={offer.id} className="bg-white rounded-[32px] border border-gray-100 shadow-sm hover:shadow-xl hover:border-indigo-100 hover:-translate-y-1 transition-all group flex flex-col h-full overflow-hidden">
               <div className="h-32 bg-indigo-50 w-full relative shrink-0">
-                {offer.image ? (
-                  <img src={getMediaUrl(offer.image)} alt="Cover" className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+                {offer.photo ? (
+                  <img src={getMediaUrl(offer.photo)} alt="Cover" className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-indigo-100 to-indigo-50" />
                 )}
@@ -265,7 +265,7 @@ function ExploreView({ offers, loading, loadData, handleApply, onSelectOffer }) 
                   <h3 className="text-2xl font-black text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors leading-tight">{offer.title}</h3>
                   <p className="text-sm font-bold text-gray-500 mb-8">{offer.company_name}</p>
 
-                  <div className="grid grid-cols-3 gap-4 border-t border-b border-gray-100 py-6 mb-8">
+                  <div className="grid grid-cols-2 gap-4 border-t border-b border-gray-100 py-6 mb-8">
                     <div className="space-y-1">
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Location</p>
                       <p className="text-sm font-black text-gray-900 truncate">
@@ -284,12 +284,14 @@ function ExploreView({ offers, loading, loadData, handleApply, onSelectOffer }) 
                     </div>
                     <div className="space-y-1">
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Duration</p>
-                      <p className="text-sm font-black text-gray-900">{(() => {
-                        if (!offer.start_date || !offer.end_date) return 'N/A';
-                        const months = Math.round((new Date(offer.end_date) - new Date(offer.start_date)) / (1000 * 60 * 60 * 24 * 30));
-                        return months > 0 ? `${months}m` : 'N/A';
-                      })()}</p>
+                      <p className="text-sm font-black text-gray-900">{offer.duration_display || 'N/A'}</p>
                     </div>
+                    {offer.type === 'paid' && offer.salary_per_week && (
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Salary</p>
+                        <p className="text-sm font-black text-emerald-600">{offer.salary_per_week} DA/week</p>
+                      </div>
+                    )}
                   </div>
                 </div>
 

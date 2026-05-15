@@ -177,7 +177,7 @@ function InternshipsView({ offers, loading, handleEdit, handleDelete, setShowOff
           <FileText size={48} className="mx-auto text-gray-300 mb-4" />
           <h3 className="text-xl font-black text-gray-900 mb-2">No offers posted yet</h3>
           <p className="text-gray-500 font-medium mb-6">Create your first internship listing to start attracting talent.</p>
-          <button onClick={() => { setEditingOffer(null); setOfferForm({title:'', description:'', location:'', requirements:'', is_active:true}); setShowOfferModal(true); }} className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-sm">
+          <button onClick={() => { setEditingOffer(null); setOfferForm({ title: '', description: '', location: '', requirements: '', is_active: true, imageFile: null, type: 'unpaid', salary: '', start_date: '', end_date: '', skills: [], is_remote: false }); setShowOfferModal(true); }} className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-sm">
             Post First Offer
           </button>
         </div>
@@ -343,14 +343,14 @@ function CompanyOfferDetailView({ offers, handleEdit, handleAppResponse }) {
             <div key={app.id} className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-xl overflow-hidden border border-gray-100 shrink-0">
-                  {app.student_image ? (
-                    <img src={getMediaUrl(app.student_image)} alt="Student" className="w-full h-full object-cover" />
+                  {app.student?.profile_image ? (
+                    <img src={getMediaUrl(app.student.profile_image)} alt="Student" className="w-full h-full object-cover" />
                   ) : (
-                    <span>{(app.student_name || 'S')[0]}</span>
+                    <span>{(app.student?.full_name || 'S')[0]}</span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-lg font-black text-gray-900 truncate">{app.student_name}</h4>
+                  <h4 className="text-lg font-black text-gray-900 truncate">{app.student?.full_name}</h4>
                   <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mt-1 truncate">{app.offer_title}</p>
                 </div>
               </div>
@@ -375,73 +375,86 @@ function CompanyOfferDetailView({ offers, handleEdit, handleAppResponse }) {
       {/* Student Profile Drawer */}
       {selectedStudent && (
         <Modal title="Digital CV" onClose={() => setSelectedStudent(null)}>
-          <div className="space-y-8">
-            <div className="flex items-center gap-6">
-              <div className="w-24 h-24 rounded-[32px] overflow-hidden border-4 border-white shadow-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                {selectedStudent.student_image ? (
-                  <img src={getMediaUrl(selectedStudent.student_image)} alt="Student" className="w-full h-full object-cover" />
+          <div className="space-y-6">
+            {/* HEADER WITH PHOTO */}
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-indigo-50 shadow-xl bg-indigo-100 flex items-center justify-center shrink-0 relative group">
+                {selectedStudent.student?.profile_image ? (
+                  <img src={getMediaUrl(selectedStudent.student.profile_image)} alt="Student" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-3xl font-black text-indigo-600">{(selectedStudent.student_name || 'S')[0]}</span>
+                  <span className="text-5xl font-black text-indigo-600">{(selectedStudent.student?.full_name || 'S')[0]}</span>
                 )}
               </div>
               <div>
-                <h3 className="text-2xl font-black text-gray-900 tracking-tight">{selectedStudent.student_name}</h3>
-                <p className="text-gray-500 font-bold">{selectedStudent.student_email}</p>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mt-2">{selectedStudent.student_details?.wilaya || 'Algeria'}</p>
+                <h3 className="text-3xl font-black text-gray-900 tracking-tight">{selectedStudent.student?.full_name}</h3>
+                <p className="text-indigo-600 font-bold mt-1">{selectedStudent.student?.email}</p>
+                <div className="flex items-center justify-center gap-2 mt-3">
+                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-100 px-4 py-1.5 rounded-full">
+                    📍 {selectedStudent.student?.wilaya || 'Algeria'}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 border-y border-gray-100 py-6 mb-8">
-              <div className="space-y-1">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">University</p>
-                <p className="text-sm font-bold text-gray-900">{selectedStudent.student_details?.university?.name || 'Not specified'}</p>
+            <hr className="border-gray-100 my-6" />
+
+            {/* ACADEMIC INFO */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-indigo-50/50 rounded-2xl p-5 border border-indigo-50">
+                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">University</p>
+                <p className="text-sm font-black text-indigo-950 leading-tight">{selectedStudent.student?.university_name || 'Not specified'}</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Academic Year</p>
-                <p className="text-sm font-bold text-gray-900">{selectedStudent.student_details?.academic_year || 'Not specified'}</p>
+              <div className="bg-indigo-50/50 rounded-2xl p-5 border border-indigo-50">
+                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Academic Year</p>
+                <p className="text-sm font-black text-indigo-950">{selectedStudent.student?.academic_year ? selectedStudent.student.academic_year.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}</p>
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Bio / Summary</p>
-                <p className="text-sm text-gray-600 font-medium leading-relaxed">
-                  {selectedStudent.student_details?.bio || 'No bio provided.'}
-                </p>
-              </div>
+            {/* BIO */}
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Professional Summary</p>
+              <p className="text-sm text-gray-700 font-medium leading-relaxed">
+                {selectedStudent.student?.professional_summary || <span className="text-gray-400 italic">No summary provided.</span>}
+              </p>
+            </div>
 
-              <div className="grid grid-cols-2 gap-6">
+            {/* LINKS & SKILLS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* LINKS */}
+              <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm space-y-4">
                 <div>
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">GitHub</p>
-                  {selectedStudent.student_details?.github_link ? (
-                    <a href={selectedStudent.student_details.github_link} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-indigo-600 hover:underline flex items-center gap-1.5">
-                      View Profile →
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">GitHub</p>
+                  {selectedStudent.student?.github_link ? (
+                    <a href={selectedStudent.student.github_link} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline flex items-center gap-1.5 transition-colors">
+                      <Globe size={14} /> View GitHub Profile
                     </a>
-                  ) : <p className="text-xs text-gray-400 italic">Not provided</p>}
+                  ) : <p className="text-xs text-gray-400 font-medium">Not provided</p>}
                 </div>
                 <div>
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Portfolio</p>
-                  {selectedStudent.student_details?.portfolio_link ? (
-                    <a href={selectedStudent.student_details.portfolio_link} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-indigo-600 hover:underline flex items-center gap-1.5">
-                      View Portfolio →
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Portfolio</p>
+                  {selectedStudent.student?.portfolio_link ? (
+                    <a href={selectedStudent.student.portfolio_link} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline flex items-center gap-1.5 transition-colors">
+                      <Globe size={14} /> View Portfolio Site
                     </a>
-                  ) : <p className="text-xs text-gray-400 italic">Not provided</p>}
+                  ) : <p className="text-xs text-gray-400 font-medium">Not provided</p>}
                 </div>
               </div>
 
-              <div>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Skills</p>
+              {/* SKILLS */}
+              <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Core Skills</p>
                 <div className="flex flex-wrap gap-2">
-                  {selectedStudent.student_details?.skills?.length > 0 ? (
-                    selectedStudent.student_details.skills.map((s, idx) => (
-                      <span key={idx} className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg font-black text-[10px] uppercase tracking-widest border border-indigo-100">
+                  {selectedStudent.student?.skills?.length > 0 ? (
+                    selectedStudent.student.skills.map((s, idx) => (
+                      <span key={idx} className="px-3 py-1.5 bg-gray-900 text-white rounded-lg font-black text-[10px] uppercase tracking-widest shadow-sm">
                         {s.name}
                       </span>
                     ))
                   ) : (
-                    <p className="text-xs text-gray-400 italic">No skills listed</p>
+                    <p className="text-xs text-gray-400 font-medium">No skills listed</p>
                   )}
                 </div>
+              </div>
               </div>
             </div>
 
@@ -794,7 +807,7 @@ export default function CompanyDashboard() {
           <Route path="/dashboard" element={<OverviewView stats={companyStats} setShowOfferModal={setShowOfferModal} />} />
           <Route path="/internships" element={<InternshipsView offers={offers} loading={loadingOffers} handleEdit={handleEdit} handleDelete={handleDelete} setShowOfferModal={setShowOfferModal} setEditingOffer={setEditingOffer} setOfferForm={setOfferForm} />} />
           <Route path="/internships/:id" element={<CompanyOfferDetailView offers={offers} handleEdit={handleEdit} handleAppResponse={handleAppResponse} />} />
-          <Route path="/stats" element={<OverviewView stats={companyStats} setShowOfferModal={setShowOfferModal} />} />
+          <Route path="/stats" element={<StatsView stats={companyStats} />} />
         </Routes>
 
         {showOfferModal && (
@@ -888,10 +901,6 @@ export default function CompanyDashboard() {
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest">Description *</label>
                 <textarea className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-medium text-gray-900 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-50 focus:outline-none transition-all min-h-[120px] resize-none" value={offerForm.description} onChange={e => setOfferForm({...offerForm, description: e.target.value})} required placeholder="Describe the role and what the intern will work on..." />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest">Requirements</label>
-                <textarea className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-medium text-gray-900 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-50 focus:outline-none transition-all min-h-[100px] resize-none" value={offerForm.requirements} onChange={e => setOfferForm({...offerForm, requirements: e.target.value})} placeholder="List one requirement per line..." />
               </div>
 
               <div className="space-y-4">
@@ -1005,14 +1014,7 @@ export default function CompanyDashboard() {
           </div>
         )}
 
-        <div className="pt-8 border-t border-gray-200 mt-12 flex justify-end">
-          <button 
-            onClick={() => setShowResetModal(true)}
-            className="px-6 py-3 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-600 hover:text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-sm"
-          >
-            Reset All Company Data
-          </button>
-        </div>
+
 
       </div>
     </DashboardLayout>
