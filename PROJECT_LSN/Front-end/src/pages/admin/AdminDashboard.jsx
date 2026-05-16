@@ -36,7 +36,7 @@ import {
 } from 'recharts';
 
 // ── OVERVIEW ──────────────────────────────────────────────────────────────────
-function OverviewView({ internships, summary, trends, statusStats, studentStats, notifications = [], handleAction, handleGeneratePDF, setSelectedInternship }) {
+function OverviewView({ internships, summary, trends, statusStats, studentStats, notifications = [], handleAction, handleGeneratePDF, setSelectedInternship, actionLoading }) {
   const queueItems = internships.filter(i => i.status === 'accepted_by_company' || i.status === 'pending');
   const actionRequiredCount = internships.filter(i => i.status === 'accepted_by_company').length;
   const recentNotifs = notifications.slice(0, 4);
@@ -395,6 +395,7 @@ export default function AdminDashboard() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedInternship, setSelectedInternship] = useState(null);
+  const [actionLoading, setActionLoading] = useState(null);
 
   useEffect(() => { 
     loadData(true); 
@@ -435,12 +436,23 @@ export default function AdminDashboard() {
         setSelectedInternship(res.data);
         return;
       }
+      
+      setActionLoading(action);
       if (action === 'approve') await validateInternship(id);
       else await rejectInternship(id);
-      loadData();
-      setSelectedInternship(null);
+      
+      await loadData(false);
+      
+      // Instead of closing the modal, update its status so the buttons swap
+      setSelectedInternship(prev => prev ? { 
+        ...prev, 
+        status: action === 'approve' ? 'validated' : 'rejected' 
+      } : null);
+      
     } catch (err) {
       console.error('Action failed', err);
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -492,6 +504,7 @@ export default function AdminDashboard() {
                   handleAction={handleAction}
                   handleGeneratePDF={handleGeneratePDF}
                   setSelectedInternship={setSelectedInternship}
+                  actionLoading={actionLoading}
                 />
               } />
               <Route path="/internships" element={
@@ -674,15 +687,17 @@ export default function AdminDashboard() {
                   <>
                     <button 
                       onClick={() => handleAction(selectedInternship.id, 'reject')} 
-                      className="flex-1 py-4 bg-white border-2 border-gray-100 text-rose-600 rounded-2xl font-black uppercase tracking-[2px] text-[11px] hover:bg-rose-50 hover:border-rose-100 transition-all active:scale-[0.98]"
+                      disabled={actionLoading}
+                      className="flex-1 py-4 bg-white border-2 border-gray-100 text-rose-600 rounded-2xl font-black uppercase tracking-[2px] text-[11px] hover:bg-rose-50 hover:border-rose-100 transition-all active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2"
                     >
-                      Reject Application
+                      {actionLoading === 'reject' ? <><Loader2 size={16} className="animate-spin"/> Rejecting...</> : 'Reject Application'}
                     </button>
                     <button 
                       onClick={() => handleAction(selectedInternship.id, 'approve')} 
-                      className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-[2px] text-[11px] hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 active:scale-[0.98]"
+                      disabled={actionLoading}
+                      className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-[2px] text-[11px] hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2"
                     >
-                      Validate & Generate PDF
+                      {actionLoading === 'approve' ? <><Loader2 size={16} className="animate-spin"/> Validating...</> : 'Validate & Generate PDF'}
                     </button>
                   </>
                 )}
