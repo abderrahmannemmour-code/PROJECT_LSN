@@ -467,8 +467,8 @@ function CompanyOfferDetailView({ offers, handleEdit, handleAppResponse }) {
           <div>
             <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-2">{offer.title}</h2>
             <div className="flex flex-wrap gap-3 items-center">
-              <span className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest border ${offer.is_active ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
-                {offer.is_active ? 'Active' : 'Inactive'}
+              <span className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest border ${offer.status === 'open' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                {offer.status === 'open' ? 'Open' : 'Closed'}
               </span>
               <span className="text-sm font-bold text-gray-500">{offer.is_remote ? <span className="flex items-center gap-1"><Wifi size={14} /> Remote</span> : offer.wilaya || offer.location || 'Algeria'}</span>
               <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-md text-[10px] font-black uppercase tracking-widest border border-indigo-100">
