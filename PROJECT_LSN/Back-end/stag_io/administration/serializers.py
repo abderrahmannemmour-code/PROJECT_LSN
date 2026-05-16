@@ -63,6 +63,9 @@ class AdminInternshipSerializer(serializers.ModelSerializer):
     company_email = serializers.EmailField(
         source='company.email', read_only=True,
     )
+    student_image = serializers.ImageField(
+        source='student.profile_image', read_only=True,
+    )
 
     class Meta:
         model = Internship
@@ -79,6 +82,7 @@ class AdminInternshipSerializer(serializers.ModelSerializer):
             'start_date',
             'end_date',
             'status',
+            'student_image',
             'created_at',
             'updated_at',
         ]
@@ -91,10 +95,26 @@ class AdminInternshipDetailSerializer(AdminInternshipSerializer):
     student_cv = StudentDigitalCVForAdminSerializer(
         source='student', read_only=True,
     )
+    offer_details = serializers.SerializerMethodField()
+    company_details = serializers.SerializerMethodField()
+
+    def get_offer_details(self, obj):
+        if obj.offer:
+            from company.serializers import InternshipOfferSerializer
+            return InternshipOfferSerializer(obj.offer).data
+        return None
+
+    def get_company_details(self, obj):
+        if obj.company:
+            return {
+                'logo': obj.company.logo.url if getattr(obj.company, 'logo', None) else None,
+                'name': obj.company.name,
+            }
+        return None
 
     class Meta(AdminInternshipSerializer.Meta):
         fields = AdminInternshipSerializer.Meta.fields + [
-            'agreement', 'student_cv',
+            'agreement', 'student_cv', 'offer_details', 'company_details',
         ]
 
 

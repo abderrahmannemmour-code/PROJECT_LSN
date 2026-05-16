@@ -56,17 +56,26 @@ function ExploreView({ offers, loading, loadData, handleApply, onSelectOffer }) 
   const filteredOffers = offers
     .filter(o => {
       const matchesType   = type === 'all' || o.type === type;
-      const matchesWilaya = wilaya === 'all' || o.wilaya === wilaya;
+      const offerWilaya = o.wilaya || o.location || '';
+      const matchesWilaya = wilaya === 'all' || 
+        (offerWilaya && (
+          offerWilaya.toLowerCase().includes(wilaya.toLowerCase()) || 
+          wilaya.toLowerCase().includes(offerWilaya.toLowerCase())
+        ));
       const matchesRemote = !remoteOnly || o.is_remote === true;
       const matchesSearch = !search ||
         o.title?.toLowerCase().includes(search.toLowerCase()) ||
         o.company_name?.toLowerCase().includes(search.toLowerCase());
 
       if (duration !== 'none') {
-        if (!o.duration_months) return false;
-        if (duration === 'short' && o.duration_months > 1) return false;
-        if (duration === 'medium' && o.duration_months !== 2) return false;
-        if (duration === 'long' && o.duration_months < 3) return false;
+        if (!o.start_date || !o.end_date) return false;
+        const start = new Date(o.start_date);
+        const end = new Date(o.end_date);
+        const days = (end - start) / (1000 * 60 * 60 * 24);
+        
+        if (duration === 'short' && days > 28) return false;
+        if (duration === 'medium' && (days <= 28 || days >= 60)) return false;
+        if (duration === 'long' && days < 60) return false;
       }
 
       return matchesType && matchesWilaya && matchesRemote && matchesSearch;
@@ -145,7 +154,7 @@ function ExploreView({ offers, loading, loadData, handleApply, onSelectOffer }) 
             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Type</span>
             <select value={type} onChange={(e) => setType(e.target.value)} className={selectClass}>
               <option value="all">All Types</option>
-              <option value="paid">💰 Paid</option>
+              <option value="paid">Paid</option>
               <option value="unpaid">Unpaid</option>
             </select>
           </div>
@@ -280,7 +289,7 @@ function ExploreView({ offers, loading, loadData, handleApply, onSelectOffer }) 
                     </div>
                     <div className="space-y-1">
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Type</p>
-                      <p className="text-sm font-black text-gray-900">{offer.type === 'paid' ? '💰 Paid' : 'Unpaid'}</p>
+                      <p className="text-sm font-black text-gray-900">{offer.type === 'paid' ? 'Paid' : 'Unpaid'}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Duration</p>

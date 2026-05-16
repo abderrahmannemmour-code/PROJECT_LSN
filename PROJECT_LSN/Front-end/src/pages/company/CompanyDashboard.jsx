@@ -208,7 +208,7 @@ function InternshipsView({ offers, loading, handleEdit, handleDelete, setShowOff
                         </div>
                         <div>
                           <p className="font-bold text-gray-900">{offer.title}</p>
-                          <p className="text-[11px] font-bold text-gray-400 mt-1 uppercase tracking-widest">{offer.type === 'paid' ? '💰 Paid' : 'Unpaid'}</p>
+                          <p className="text-[11px] font-bold text-gray-400 mt-1 uppercase tracking-widest">{offer.type === 'paid' ? 'Paid' : 'Unpaid'}</p>
                         </div>
                       </div>
                     </td>
@@ -374,79 +374,41 @@ function CompanyOfferDetailView({ offers, handleEdit, handleAppResponse }) {
 
       {/* Student Profile Drawer */}
       {selectedStudent && (
-        <Modal title="Digital CV" onClose={() => setSelectedStudent(null)}>
-          <div className="space-y-6">
-            {/* HEADER WITH PHOTO */}
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-indigo-50 shadow-xl bg-indigo-100 flex items-center justify-center shrink-0 relative group">
-                {selectedStudent.student?.profile_image ? (
-                  <img src={getMediaUrl(selectedStudent.student.profile_image)} alt="Student" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-5xl font-black text-indigo-600">{(selectedStudent.student?.full_name || 'S')[0]}</span>
-                )}
-              </div>
-              <div>
-                <h3 className="text-3xl font-black text-gray-900 tracking-tight">{selectedStudent.student?.full_name}</h3>
-                <p className="text-indigo-600 font-bold mt-1">{selectedStudent.student?.email}</p>
-                <div className="flex items-center justify-center gap-2 mt-3">
-                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-100 px-4 py-1.5 rounded-full">
+        <Modal title="Digital CV" wide={true} onClose={() => setSelectedStudent(null)}>
+          <div className="flex flex-col lg:flex-row gap-8 items-start w-full max-w-7xl mx-auto">
+            
+            {/* STUDENT PROFILE (LEFT) */}
+            <div className="flex-1 space-y-6 w-full lg:max-w-md">
+              <div className="bg-white rounded-[32px] p-8 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col items-center text-center">
+                <div className="w-32 h-32 rounded-full overflow-hidden border-8 border-white shadow-xl bg-indigo-100 flex items-center justify-center shrink-0 mb-5 relative group">
+                  {selectedStudent.student?.profile_image ? (
+                    <img src={getMediaUrl(selectedStudent.student.profile_image)} alt="Student" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-5xl font-black text-indigo-600">{(selectedStudent.student?.full_name || 'S')[0]}</span>
+                  )}
+                </div>
+                <h3 className="text-2xl font-black text-gray-900 tracking-tight">{selectedStudent.student?.full_name}</h3>
+                <p className="text-indigo-600 font-bold text-sm mt-1">{selectedStudent.student?.email}</p>
+                <div className="mt-4">
+                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-50 px-5 py-2 rounded-full border border-gray-100 shadow-sm">
                     📍 {selectedStudent.student?.wilaya || 'Algeria'}
                   </span>
                 </div>
               </div>
-            </div>
 
-            <hr className="border-gray-100 my-6" />
-
-            {/* ACADEMIC INFO */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-indigo-50/50 rounded-2xl p-5 border border-indigo-50">
-                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">University</p>
-                <p className="text-sm font-black text-indigo-950 leading-tight">{selectedStudent.student?.university_name || 'Not specified'}</p>
-              </div>
-              <div className="bg-indigo-50/50 rounded-2xl p-5 border border-indigo-50">
-                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Academic Year</p>
-                <p className="text-sm font-black text-indigo-950">{selectedStudent.student?.academic_year ? selectedStudent.student.academic_year.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}</p>
-              </div>
-            </div>
-
-            {/* BIO */}
-            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Professional Summary</p>
-              <p className="text-sm text-gray-700 font-medium leading-relaxed">
-                {selectedStudent.student?.professional_summary || <span className="text-gray-400 italic">No summary provided.</span>}
-              </p>
-            </div>
-
-            {/* LINKS & SKILLS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* LINKS */}
-              <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm space-y-4">
-                <div>
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">GitHub</p>
-                  {selectedStudent.student?.github_link ? (
-                    <a href={selectedStudent.student.github_link} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline flex items-center gap-1.5 transition-colors">
-                      <Globe size={14} /> View GitHub Profile
-                    </a>
-                  ) : <p className="text-xs text-gray-400 font-medium">Not provided</p>}
-                </div>
-                <div>
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Portfolio</p>
-                  {selectedStudent.student?.portfolio_link ? (
-                    <a href={selectedStudent.student.portfolio_link} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline flex items-center gap-1.5 transition-colors">
-                      <Globe size={14} /> View Portfolio Site
-                    </a>
-                  ) : <p className="text-xs text-gray-400 font-medium">Not provided</p>}
-                </div>
+              <div className="bg-white rounded-[32px] p-8 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-3">Professional Summary</p>
+                <p className="text-sm text-gray-600 font-medium leading-relaxed">
+                  {selectedStudent.student?.professional_summary || <span className="text-gray-400 italic">No summary provided.</span>}
+                </p>
               </div>
 
-              {/* SKILLS */}
-              <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Core Skills</p>
-                <div className="flex flex-wrap gap-2">
+              <div className="bg-white rounded-[32px] p-8 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-5">
+                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Core Skills & Links</p>
+                <div className="flex flex-wrap gap-2 mb-4">
                   {selectedStudent.student?.skills?.length > 0 ? (
                     selectedStudent.student.skills.map((s, idx) => (
-                      <span key={idx} className="px-3 py-1.5 bg-gray-900 text-white rounded-lg font-black text-[10px] uppercase tracking-widest shadow-sm">
+                      <span key={idx} className="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg font-black text-[10px] uppercase tracking-widest border border-indigo-100">
                         {s.name}
                       </span>
                     ))
@@ -454,50 +416,97 @@ function CompanyOfferDetailView({ offers, handleEdit, handleAppResponse }) {
                     <p className="text-xs text-gray-400 font-medium">No skills listed</p>
                   )}
                 </div>
-              </div>
+                <div className="flex gap-4 border-t border-gray-50 pt-4">
+                   {selectedStudent.student?.github_link && (
+                      <a href={selectedStudent.student.github_link} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1.5"><Globe size={14} /> GitHub</a>
+                   )}
+                   {selectedStudent.student?.portfolio_link && (
+                      <a href={selectedStudent.student.portfolio_link} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1.5"><Globe size={14} /> Portfolio</a>
+                   )}
+                </div>
               </div>
             </div>
 
-            <div className="flex gap-4 pt-4 border-t border-gray-100">
-              {selectedStudent.status === 'pending' ? (
-                <>
-                  <div className="flex-1 flex gap-2">
+            {/* OFFER DETAILS & ACTIONS (RIGHT) */}
+            <div className="flex-1 space-y-6 w-full">
+              <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-[32px] p-8 text-white shadow-xl shadow-indigo-200 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+                  <TrendingUp size={120} />
+                </div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-8">
+                    <span className="px-3 py-1 bg-white/20 rounded-lg text-[10px] font-black uppercase tracking-widest backdrop-blur-md">
+                      {offer?.is_paid ? 'Paid' : 'Unpaid'}
+                    </span>
+                    {offer?.company_logo && (
+                      <div className="w-10 h-10 rounded-xl bg-white p-2 flex items-center justify-center shrink-0">
+                         <img src={getMediaUrl(offer.company_logo)} alt="" className="w-full h-full object-contain" />
+                      </div>
+                    )}
+                  </div>
+                  <h2 className="text-3xl font-black tracking-tight mb-2">{offer?.title}</h2>
+                  <p className="text-indigo-100 font-medium text-sm flex items-center gap-2">
+                     {offer?.company_name} • {offer?.is_remote ? 'Remote' : offer?.wilaya}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-[32px] p-8 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-6">
+                <div>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Offer Description</p>
+                  <p className="text-sm text-gray-600 font-medium leading-relaxed whitespace-pre-wrap">{offer?.description}</p>
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Required Skills</p>
+                  <div className="flex flex-wrap gap-2">
+                    {offer?.skills?.map((skill, index) => (
+                      <span key={index} className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg font-black text-[10px] uppercase tracking-widest border border-indigo-100">
+                        {skill.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* ACTION BUTTONS */}
+              <div className="pt-2">
+                {selectedStudent.status === 'pending' ? (
+                  <div className="flex gap-4">
                     <button 
                       onClick={() => setSelectedStudent(null)}
-                      className="px-4 py-3 bg-gray-50 text-gray-500 rounded-xl font-black text-[10px] uppercase tracking-widest border border-gray-200 hover:bg-gray-100 transition-colors"
+                      className="flex-1 py-4 bg-gray-50 text-gray-500 rounded-2xl font-black text-[11px] uppercase tracking-widest border border-gray-200 hover:bg-gray-100 transition-colors"
                     >
                       Keep Pending
                     </button>
-                  </div>
-                  <div className="flex gap-2">
                     <button 
                       onClick={() => handleLocalResponse(selectedStudent.id, 'rejected')}
-                      className="px-6 py-3 bg-white text-rose-600 rounded-xl font-black text-[10px] uppercase tracking-widest border border-rose-100 hover:bg-rose-50 transition-colors"
+                      className="flex-1 py-4 bg-white text-rose-600 rounded-2xl font-black text-[11px] uppercase tracking-widest border-2 border-gray-100 hover:bg-rose-50 hover:border-rose-100 transition-colors"
                     >
                       Reject
                     </button>
                     <button 
                       onClick={() => handleLocalResponse(selectedStudent.id, 'accepted')}
-                      className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md hover:bg-indigo-700 transition-colors"
+                      className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-[2px] shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-colors"
                     >
                       Accept Applicant
                     </button>
                   </div>
-                </>
-              ) : (
-                <div className="w-full flex items-center justify-between bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${selectedStudent.status === 'rejected' ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
-                      {selectedStudent.status === 'rejected' ? <XCircle size={18} /> : <CheckCircle2 size={18} />}
+                ) : (
+                  <div className="w-full flex items-center justify-between bg-white p-5 rounded-2xl border-2 border-gray-100">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${selectedStudent.status === 'rejected' ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                        {selectedStudent.status === 'rejected' ? <XCircle size={20} /> : <CheckCircle2 size={20} />}
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Application Status</p>
+                        <p className="text-base font-black text-gray-900 mt-1 capitalize">{selectedStudent.status.replace(/_/g, ' ')}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Application Status</p>
-                      <p className="text-sm font-black text-gray-900 mt-1 capitalize">{selectedStudent.status.replace(/_/g, ' ')}</p>
-                    </div>
+                    <button onClick={() => setSelectedStudent(null)} className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline">Close View</button>
                   </div>
-                  <button onClick={() => setSelectedStudent(null)} className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline">Close View</button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </Modal>
@@ -715,6 +724,7 @@ export default function CompanyDashboard() {
           title: offerForm.title,
           description: offerForm.description,
           location: offerForm.is_remote ? '' : offerForm.location,
+          wilaya: offerForm.is_remote ? '' : offerForm.location,
           requirements: offerForm.requirements,
           is_active: offerForm.is_active,
           type: offerForm.type,
@@ -730,6 +740,7 @@ export default function CompanyDashboard() {
           title: offerForm.title,
           description: offerForm.description,
           location: offerForm.is_remote ? '' : offerForm.location,
+          wilaya: offerForm.is_remote ? '' : offerForm.location,
           requirements: offerForm.requirements,
           is_active: offerForm.is_active,
           type: offerForm.type,

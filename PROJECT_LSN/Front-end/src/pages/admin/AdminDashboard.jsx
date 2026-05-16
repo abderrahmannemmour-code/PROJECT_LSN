@@ -36,8 +36,9 @@ import {
 } from 'recharts';
 
 // ── OVERVIEW ──────────────────────────────────────────────────────────────────
-function OverviewView({ internships, summary, trends, statusStats, studentStats, notifications = [], handleAction, handleGeneratePDF }) {
-  const pending = internships.filter(i => i.status === 'accepted_by_company');
+function OverviewView({ internships, summary, trends, statusStats, studentStats, notifications = [], handleAction, handleGeneratePDF, setSelectedInternship }) {
+  const queueItems = internships.filter(i => i.status === 'accepted_by_company' || i.status === 'pending');
+  const actionRequiredCount = internships.filter(i => i.status === 'accepted_by_company').length;
   const recentNotifs = notifications.slice(0, 4);
   const navigate = useNavigate();
   
@@ -54,12 +55,12 @@ function OverviewView({ internships, summary, trends, statusStats, studentStats,
             bg: 'bg-indigo-50',
           },
           {
-            label: 'Pending Validation',
-            value: pending.length,
+            label: 'In Progress',
+            value: queueItems.length,
             icon: Clock,
             color: 'text-amber-600',
             bg: 'bg-amber-50',
-            urgent: pending.length > 0,
+            urgent: actionRequiredCount > 0,
           },
           {
             label: 'Validated',
@@ -98,8 +99,8 @@ function OverviewView({ internships, summary, trends, statusStats, studentStats,
               <div>
                 <p className="text-[11px] font-black text-gray-500 uppercase tracking-[2px] mb-2">Placement Rate</p>
                 <h3 className="text-5xl font-black text-indigo-600 tracking-tighter">
-                  {summary.placement_rate ?? '—'}
-                  {typeof summary.placement_rate === 'number' ? '%' : ''}
+                  {summary.students?.placement_rate ?? '—'}
+                  {typeof summary.students?.placement_rate === 'number' ? '%' : ''}
                 </h3>
               </div>
               <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
@@ -108,11 +109,11 @@ function OverviewView({ internships, summary, trends, statusStats, studentStats,
             </div>
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Students Placed</p>
-              <p className="text-xl font-black text-gray-900">{summary.placed_count ?? '—'}</p>
+              <p className="text-xl font-black text-gray-900">{summary.students?.placed ?? '—'}</p>
             </div>
-            {typeof summary.placement_rate === 'number' && (
+            {typeof summary.students?.placement_rate === 'number' && (
               <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-indigo-600 rounded-full transition-all duration-1000" style={{ width: `${summary.placement_rate}%` }}></div>
+                <div className="h-full bg-indigo-600 rounded-full transition-all duration-1000" style={{ width: `${summary.students.placement_rate}%` }}></div>
               </div>
             )}
           </div>
@@ -149,7 +150,7 @@ function OverviewView({ internships, summary, trends, statusStats, studentStats,
                       <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af', fontWeight: 'bold' }} dy={10} />
+                  <XAxis dataKey="period_start" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af', fontWeight: 'bold' }} dy={10} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af', fontWeight: 'bold' }} />
                   <Tooltip 
                     contentStyle={{ borderRadius: '16px', border: '1px solid #f3f4f6', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
@@ -157,7 +158,7 @@ function OverviewView({ internships, summary, trends, statusStats, studentStats,
                     labelStyle={{ color: '#6b7280', fontWeight: 'bold', fontSize: '12px', marginBottom: '4px' }}
                   />
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                  <Area type="monotone" dataKey="count" stroke="#4f46e5" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" activeDot={{ r: 6, fill: '#4f46e5', stroke: '#fff', strokeWidth: 3 }} />
+                  <Area type="monotone" dataKey="total_updates" stroke="#4f46e5" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" activeDot={{ r: 6, fill: '#4f46e5', stroke: '#fff', strokeWidth: 3 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -250,22 +251,22 @@ function OverviewView({ internships, summary, trends, statusStats, studentStats,
       <div className="pt-4">
         <div className="flex justify-between items-center mb-6 px-2">
           <h2 className="text-2xl font-black text-gray-900 tracking-tight">Validation Queue</h2>
-          {pending.length > 0 && (
+          {queueItems.length > 0 && (
             <div className="bg-amber-50 text-amber-700 px-4 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-widest border border-amber-200 shadow-sm">
-              {pending.length} Pending
+              {queueItems.length} In Progress
             </div>
           )}
         </div>
 
-        {pending.length === 0 ? (
+        {queueItems.length === 0 ? (
           <div className="py-12 text-center bg-white rounded-3xl border border-gray-200 shadow-sm">
             <CheckCircle2 size={40} className="mx-auto text-emerald-500 mb-4" />
             <p className="font-black text-gray-900 text-xl">All caught up!</p>
-            <p className="text-gray-500 font-medium text-sm mt-1">No internships waiting for validation.</p>
+            <p className="text-gray-500 font-medium text-sm mt-1">No internships in progress.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {pending.map((req) => (
+            {queueItems.map((req) => (
               <div 
                 key={req.id} 
                 onClick={() => handleAction(req.id, 'select')}
@@ -281,8 +282,16 @@ function OverviewView({ internships, summary, trends, statusStats, studentStats,
                   </div>
                 </div>
                 <div className="flex gap-2 mt-auto pt-4 border-t border-gray-100" onClick={e => e.stopPropagation()}>
-                  <button onClick={() => handleAction(req.id, 'reject')} className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 transition-colors">Reject</button>
-                  <button onClick={() => handleAction(req.id, 'approve')} className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-sm">Validate</button>
+                  {req.status === 'accepted_by_company' ? (
+                    <>
+                      <button onClick={() => handleAction(req.id, 'reject')} className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 transition-colors">Reject</button>
+                      <button onClick={() => handleAction(req.id, 'approve')} className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-sm">Validate</button>
+                    </>
+                  ) : (
+                    <div className="flex-1 py-2.5 bg-gray-50 text-gray-500 rounded-xl text-[10px] font-black uppercase tracking-widest text-center border border-gray-100">
+                      Waiting for Company
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -294,7 +303,7 @@ function OverviewView({ internships, summary, trends, statusStats, studentStats,
 }
 
 // ── INTERNSHIPS VIEW ───────────────────────────────────────────────────────────
-function InternshipsView({ internships, loading, handleAction, handleGeneratePDF }) {
+function InternshipsView({ internships, loading, handleAction, handleGeneratePDF, setSelectedInternship }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center px-2">
@@ -361,7 +370,7 @@ function InternshipsView({ internships, loading, handleAction, handleGeneratePDF
                         {item.status === 'validated' && (
                           <button onClick={() => handleGeneratePDF(item.id)} className="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-all border border-emerald-200">PDF</button>
                         )}
-                        <button className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"><MoreHorizontal size={18} /></button>
+                        <button onClick={(e) => { e.stopPropagation(); handleAction(item.id, 'select'); }} className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"><MoreHorizontal size={18} /></button>
                       </div>
                     </td>
                   </tr>
@@ -409,7 +418,7 @@ export default function AdminDashboard() {
       if (intRes.status === 'fulfilled') setInternships(intRes.value.data);
       if (statsRes.status === 'fulfilled') setSummary(statsRes.value.data);
       if (studRes.status === 'fulfilled') setStudentStats(studRes.value.data);
-      if (trendsRes.status === 'fulfilled') setTrends(trendsRes.value.data);
+      if (trendsRes.status === 'fulfilled') setTrends(trendsRes.value.data.trends || []);
       if (statusRes.status === 'fulfilled') setStatusStats(statusRes.value.data);
       if (notifRes.status === 'fulfilled') setNotifications(notifRes.value.data);
     } catch (err) {
@@ -482,6 +491,7 @@ export default function AdminDashboard() {
                   notifications={notifications}
                   handleAction={handleAction}
                   handleGeneratePDF={handleGeneratePDF}
+                  setSelectedInternship={setSelectedInternship}
                 />
               } />
               <Route path="/internships" element={
@@ -490,6 +500,7 @@ export default function AdminDashboard() {
                   loading={loading}
                   handleAction={handleAction}
                   handleGeneratePDF={handleGeneratePDF}
+                  setSelectedInternship={setSelectedInternship}
                 />
               } />
               <Route path="/applicants" element={
@@ -509,7 +520,7 @@ export default function AdminDashboard() {
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                           {internships.map((item) => (
-                            <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                            <tr key={item.id} className="hover:bg-gray-50/50 transition-colors cursor-pointer" onClick={() => handleAction(item.id, 'select')}>
                               <td className="px-6 py-4">
                                 <div className="flex items-center gap-3">
                                   <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center font-black text-indigo-600 shrink-0 border border-indigo-100">
@@ -523,7 +534,7 @@ export default function AdminDashboard() {
                               </td>
                               <td className="px-6 py-4"><StatusBadge status={item.status} /></td>
                               <td className="px-6 py-4 text-right">
-                                <button className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"><MoreHorizontal size={18} /></button>
+                                <button onClick={(e) => { e.stopPropagation(); handleAction(item.id, 'select'); }} className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"><MoreHorizontal size={18} /></button>
                               </td>
                             </tr>
                           ))}
@@ -542,54 +553,63 @@ export default function AdminDashboard() {
                 
                 {/* STUDENT PROFILE (LEFT) */}
                 <div className="flex-1 space-y-6 w-full">
-                  <div className="flex items-center gap-4 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-                    <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center font-black text-indigo-600 border border-indigo-100 overflow-hidden shrink-0">
-                      {selectedInternship.student_image ? (
-                        <img src={getMediaUrl(selectedInternship.student_image)} alt="" className="w-full h-full object-cover" />
+                  <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm flex flex-col items-center text-center space-y-4">
+                    <div className="w-32 h-32 rounded-full overflow-hidden border-8 border-white shadow-xl bg-indigo-100 flex items-center justify-center shrink-0 relative group">
+                      {selectedInternship.student_cv?.profile_image ? (
+                        <img src={getMediaUrl(selectedInternship.student_cv.profile_image)} alt="Student" className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-2xl">{(selectedInternship.student_name || 'S')[0]}</span>
+                        <span className="text-5xl font-black text-indigo-600">{(selectedInternship.student_name || 'S')[0]}</span>
                       )}
                     </div>
-                    <div>
-                      <h3 className="text-lg font-black text-gray-900 leading-tight">{selectedInternship.student_name}</h3>
-                      <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest">{selectedInternship.student_email}</p>
+                    <div className="space-y-1">
+                      <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">{selectedInternship.student_name}</h3>
+                      <p className="text-indigo-600 font-bold text-sm">{selectedInternship.student_email}</p>
+                      <div className="flex items-center justify-center gap-2 mt-4">
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-slate-50 border border-slate-100 px-4 py-1.5 rounded-full shadow-sm">
+                          📍 {selectedInternship.student_cv?.wilaya || 'Algeria'}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 p-6 rounded-3xl space-y-6 border border-gray-100">
-                    <div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-3">Professional Bio</p>
-                      <p className="text-sm text-gray-600 font-medium leading-relaxed">
-                        {selectedInternship.student_details?.bio || 'No bio provided.'}
-                      </p>
-                    </div>
+                  <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Professional Summary</p>
+                    <p className="text-sm text-slate-700 font-medium leading-relaxed">
+                      {selectedInternship.student_cv?.professional_summary || <span className="text-slate-400 italic">No summary provided.</span>}
+                    </p>
+                  </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-5">
                       <div>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-2">GitHub</p>
-                        {selectedInternship.student_details?.github_link ? (
-                          <a href={selectedInternship.student_details.github_link} target="_blank" rel="noopener noreferrer" className="text-xs font-black text-indigo-600 hover:underline">View Profile ↗</a>
-                        ) : <span className="text-xs text-gray-400 italic">Not provided</span>}
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">GitHub</p>
+                        {selectedInternship.student_cv?.github_link ? (
+                          <a href={selectedInternship.student_cv.github_link} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline flex items-center gap-2 transition-all">
+                            <Globe size={16} /> View Profile
+                          </a>
+                        ) : <p className="text-xs text-slate-400 font-medium">Not provided</p>}
                       </div>
                       <div>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-2">Portfolio</p>
-                        {selectedInternship.student_details?.portfolio_link ? (
-                          <a href={selectedInternship.student_details.portfolio_link} target="_blank" rel="noopener noreferrer" className="text-xs font-black text-indigo-600 hover:underline">View Portfolio ↗</a>
-                        ) : <span className="text-xs text-gray-400 italic">Not provided</span>}
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Portfolio</p>
+                        {selectedInternship.student_cv?.portfolio_link ? (
+                          <a href={selectedInternship.student_cv.portfolio_link} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline flex items-center gap-2 transition-all">
+                            <Globe size={16} /> View Portfolio
+                          </a>
+                        ) : <p className="text-xs text-slate-400 font-medium">Not provided</p>}
                       </div>
                     </div>
 
-                    <div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-3">Student Skills</p>
+                    <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Core Skills</p>
                       <div className="flex flex-wrap gap-2">
-                        {selectedInternship.student_details?.skills?.length > 0 ? (
-                          selectedInternship.student_details.skills.map((s, idx) => (
-                            <span key={idx} className="px-2.5 py-1 bg-white text-indigo-600 rounded-lg font-black text-[9px] uppercase tracking-widest border border-indigo-100 shadow-sm">
+                        {selectedInternship.student_cv?.skills?.length > 0 ? (
+                          selectedInternship.student_cv.skills.map((s, idx) => (
+                            <span key={idx} className="px-3 py-2 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg">
                               {s.name}
                             </span>
                           ))
                         ) : (
-                          <span className="text-xs text-gray-400 italic">No skills listed</span>
+                          <p className="text-xs text-slate-400 font-medium">No skills listed</p>
                         )}
                       </div>
                     </div>
@@ -630,20 +650,11 @@ export default function AdminDashboard() {
                       </p>
                     </div>
 
-                    {selectedInternship.offer_details?.requirements && (
-                      <div>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-3">Requirements</p>
-                        <p className="text-xs text-gray-500 font-medium leading-relaxed whitespace-pre-wrap bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100/50">
-                          {selectedInternship.offer_details.requirements}
-                        </p>
-                      </div>
-                    )}
-
                     <div>
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-3">Required Skills</p>
                       <div className="flex flex-wrap gap-2">
-                        {selectedInternship.offer_details?.skills_details?.length > 0 ? (
-                          selectedInternship.offer_details.skills_details.map((s) => (
+                        {selectedInternship.offer_details?.required_skills?.length > 0 ? (
+                          selectedInternship.offer_details.required_skills.map((s) => (
                             <span key={s.id} className="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg font-black text-[9px] uppercase tracking-widest border border-indigo-100">
                               {s.name}
                             </span>
@@ -686,6 +697,17 @@ export default function AdminDashboard() {
                 {selectedInternship.status === 'rejected' && (
                   <div className="w-full py-4 bg-rose-50 text-rose-600 rounded-2xl font-black uppercase tracking-[2px] text-[11px] text-center border border-rose-100">
                     Application Rejected
+                  </div>
+                )}
+                {selectedInternship.status === 'pending' && (
+                  <div className="w-full py-4 bg-gray-50 text-gray-500 rounded-2xl font-black uppercase tracking-[2px] text-[11px] text-center border border-gray-200 flex flex-col items-center justify-center">
+                    <span className="flex items-center gap-2">
+                      <Clock size={16} />
+                      Waiting for Company Review
+                    </span>
+                    <span className="text-[9px] text-gray-400 mt-1 capitalize tracking-normal font-bold">
+                      This application must be accepted by the company before admin validation.
+                    </span>
                   </div>
                 )}
               </div>
