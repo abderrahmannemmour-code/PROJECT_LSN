@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import logoImg from '../assets/logo.png';
 import { useAuth } from "../context/AuthContext";
 import { 
   Globe, 
@@ -9,7 +10,11 @@ import {
   Zap,
   ArrowRight,
   Target,
-  Sparkles
+  Sparkles,
+  User,
+  Briefcase,
+  FileText,
+  Search
 } from "lucide-react";
 
 export default function LandingPage() {
@@ -23,7 +28,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
           <div className="flex items-center gap-2 group cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg group-hover:rotate-12 transition-transform shadow-md"></div>
+            <img src={logoImg} alt="STAG.IO Logo" className="w-8 h-8 object-contain group-hover:scale-110 transition-transform" />
             <span className="text-2xl font-black tracking-tighter text-indigo-600">
               Stag.io
             </span>
@@ -61,11 +66,6 @@ export default function LandingPage() {
       <main className="pt-40 pb-32">
         <section className="relative px-6">
           <div className="max-w-5xl mx-auto text-center mb-24">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-[11px] font-black text-indigo-600 uppercase tracking-widest mb-8 animate-fade-in">
-              <Sparkles size={14} className="text-indigo-500" />
-              The #1 internship platform in Algeria
-            </div>
-
             <h1 className="text-7xl lg:text-9xl font-black text-gray-900 leading-[0.85] tracking-tighter mb-10 animate-slide-up">
               Level up your <br />
               <span className="text-indigo-600">career path.</span>
@@ -94,28 +94,63 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* APP MOCKUP PREVIEW */}
-          <div className="max-w-6xl mx-auto relative group animate-slide-up [animation-delay:600ms]">
-            <div className="relative bg-white rounded-[40px] p-4 shadow-2xl shadow-indigo-100 border border-gray-100 overflow-hidden">
-              <div className="bg-gray-50 rounded-[32px] overflow-hidden aspect-[16/9] relative border border-gray-200">
+          {/* NEW CTAs */}
+          <div className="max-w-6xl mx-auto relative group animate-slide-up [animation-delay:600ms] space-y-12">
+            {/* Student CTA */}
+            <div className="flex flex-col md:flex-row bg-white rounded-[40px] p-8 lg:p-12 shadow-2xl shadow-indigo-100 border border-gray-100 overflow-hidden items-center gap-12">
+              <div className="w-full md:w-1/2 bg-gray-50 rounded-[32px] overflow-hidden aspect-[4/3] lg:aspect-[16/10] relative border border-gray-200 group-hover:shadow-lg transition-shadow">
                 <img 
-                  src="https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=2070&auto=format&fit=crop" 
-                  alt="Dashboard Preview" 
-                  className="w-full h-full object-cover opacity-80"
+                  src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop" 
+                  alt="Student Preview" 
+                  className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700"
                 />
-                
-                {/* FLOATING UI ELEMENTS */}
-                <div className="absolute top-10 left-10 p-6 bg-white/90 backdrop-blur-md border border-white rounded-3xl shadow-xl animate-fade-in">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600">
-                      <Target size={24} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Matching Score</p>
-                      <p className="text-xl font-black text-gray-900">98.4% Match</p>
-                    </div>
-                  </div>
+              </div>
+              <div className="w-full md:w-1/2 space-y-6">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-[11px] font-black text-indigo-600 uppercase tracking-widest">
+                  <User size={14} className="text-indigo-500" />
+                  For Students
                 </div>
+                <h2 className="text-4xl lg:text-5xl font-black text-gray-900 leading-tight tracking-tighter">
+                  Find the perfect internship for your degree.
+                </h2>
+                <p className="text-lg text-gray-500 font-medium leading-relaxed">
+                  Join thousands of students launching their careers. Build your digital CV, discover remote and on-site opportunities, and apply with a single click.
+                </p>
+                <button 
+                  onClick={() => navigate('/register', { state: { role: 'student' } })}
+                  className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-xl hover:bg-indigo-700 hover:-translate-y-1 transition-all group/btn flex items-center gap-2 w-fit"
+                >
+                  Register as Student <ArrowRight className="group-hover/btn:translate-x-1 transition-transform" />
+                </button>
+              </div>
+            </div>
+
+            {/* Company CTA */}
+            <div className="flex flex-col md:flex-row-reverse bg-white rounded-[40px] p-8 lg:p-12 shadow-2xl shadow-indigo-100 border border-gray-100 overflow-hidden items-center gap-12">
+              <div className="w-full md:w-1/2 bg-gray-50 rounded-[32px] overflow-hidden aspect-[4/3] lg:aspect-[16/10] relative border border-gray-200 group-hover:shadow-lg transition-shadow">
+                <img 
+                  src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=2070&auto=format&fit=crop" 
+                  alt="Company Preview" 
+                  className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700"
+                />
+              </div>
+              <div className="w-full md:w-1/2 space-y-6">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-[11px] font-black text-emerald-600 uppercase tracking-widest">
+                  <Briefcase size={14} className="text-emerald-500" />
+                  For Companies
+                </div>
+                <h2 className="text-4xl lg:text-5xl font-black text-gray-900 leading-tight tracking-tighter">
+                  Hire top talent from the best universities.
+                </h2>
+                <p className="text-lg text-gray-500 font-medium leading-relaxed">
+                  Post opportunities, review verified profiles, and hire the brightest minds in Algeria to grow your business.
+                </p>
+                <button 
+                  onClick={() => navigate('/register', { state: { role: 'company' } })}
+                  className="px-8 py-4 bg-gray-900 text-white rounded-2xl font-black shadow-xl hover:bg-gray-800 hover:-translate-y-1 transition-all group/btn flex items-center gap-2 w-fit"
+                >
+                  Register as Company <ArrowRight className="group-hover/btn:translate-x-1 transition-transform" />
+                </button>
               </div>
             </div>
           </div>
@@ -125,16 +160,16 @@ export default function LandingPage() {
         <section className="max-w-7xl mx-auto px-6 mt-40 grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             { 
-              title: "Verified Listings", 
-              desc: "Every company and offer is manually verified by our team for your safety.",
-              icon: ShieldCheck,
+              title: "Document Generation", 
+              desc: "Generate your internship documents and conventions automatically.",
+              icon: FileText,
               color: "text-indigo-600",
               bg: "bg-indigo-50"
             },
             { 
-              title: "Smart Matching", 
-              desc: "Our algorithm matches you with offers that fit your skills and career goals.",
-              icon: Zap,
+              title: "Advanced Search", 
+              desc: "Easily find the perfect internship with our advanced search filters by wilaya, domain, and more.",
+              icon: Search,
               color: "text-indigo-600",
               bg: "bg-indigo-50"
             },
@@ -162,7 +197,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-16 mb-24">
           <div className="md:col-span-1 space-y-8">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-indigo-600 rounded-lg shadow-md"></div>
+              <img src={logoImg} alt="STAG.IO Logo" className="w-8 h-8 object-contain" />
               <span className="text-3xl font-black tracking-tighter text-indigo-600">Stag.io</span>
             </div>
             <p className="text-gray-500 font-medium leading-relaxed">

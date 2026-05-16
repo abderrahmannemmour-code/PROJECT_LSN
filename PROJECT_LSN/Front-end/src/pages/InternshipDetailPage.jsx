@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import logoImg from '../assets/logo.png';
 import {
   MapPin,
   Clock,
@@ -107,7 +108,10 @@ export default function InternshipDetailPage() {
             </div>
             Back
           </button>
-          <span className="text-2xl font-black tracking-tight text-indigo-600">Stag.io</span>
+          <div className="flex items-center gap-2">
+            <img src={logoImg} alt="STAG.IO Logo" className="w-8 h-8 object-contain" />
+            <span className="text-2xl font-black tracking-tight text-indigo-600">Stag.io</span>
+          </div>
         </div>
       </div>
 

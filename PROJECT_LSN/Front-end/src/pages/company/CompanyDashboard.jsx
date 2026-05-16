@@ -42,13 +42,19 @@ const XIcon = ({ size, className }) => (
 );
 
 const ALGERIAN_WILAYAS = [
-  "Adrar", "Chlef", "Laghouat", "Oum El Bouaghi", "Batna", "Béjaïa", "Biskra", "Béchar", "Blida", "Bouira", 
-  "Tamanrasset", "Tébessa", "Tlemcen", "Tiaret", "Tizi Ouzou", "Alger", "Djelfa", "Jijel", "Sétif", "Saïda", 
-  "Skikda", "Sidi Bel Abbès", "Annaba", "Guelma", "Constantine", "Médéa", "Mostaganem", "M'Sila", "Mascara", 
-  "Ouargla", "Oran", "El Bayadh", "Illizi", "Bordj Bou Arréridj", "Boumerdès", "El Tarf", "Tindouf", "Tissemsilt", 
-  "El Oued", "Khenchela", "Souk Ahras", "Tipaza", "Mila", "Aïn Defla", "Naâma", "Aïn Témouchent", "Ghardaïa", 
-  "Relizane", "Timimoun", "Bordj Badji Mokhtar", "Ouled Djellal", "Béni Abbès", "In Salah", "In Guezzam", 
-  "Touggourt", "Djanet", "El M'Ghair", "El Meniaa", "Remote"
+    "01 - Adrar", "02 - Chlef", "03 - Laghouat", "04 - Oum El Bouaghi", "05 - Batna",
+    "06 - Béjaïa", "07 - Biskra", "08 - Béchar", "09 - Blida", "10 - Bouira",
+    "11 - Tamanrasset", "12 - Tébessa", "13 - Tlemcen", "14 - Tiaret", "15 - Tizi Ouzou",
+    "16 - Alger", "17 - Djelfa", "18 - Jijel", "19 - Sétif", "20 - Saïda",
+    "21 - Skikda", "22 - Sidi Bel Abbès", "23 - Annaba", "24 - Guelma", "25 - Constantine",
+    "26 - Médéa", "27 - Mostaganem", "28 - M'Sila", "29 - Mascara", "30 - Ouargla",
+    "31 - Oran", "32 - El Bayadh", "33 - Illizi", "34 - Bordj Bou Arréridj", "35 - Boumerdès",
+    "36 - El Tarf", "37 - Tindouf", "38 - Tissemsilt", "39 - El Oued", "40 - Khenchela",
+    "41 - Souk Ahras", "42 - Tipaza", "43 - Mila", "44 - Aïn Defla", "45 - Naâma",
+    "46 - Aïn Témouchent", "47 - Ghardaïa", "48 - Relizane",
+    "49 - El M'Ghair", "50 - El Meniaa", "51 - Ouled Djellal", "52 - Bordj Baji Mokhtar",
+    "53 - Béni Abbès", "54 - Timimoun", "55 - Touggourt", "56 - Djanet",
+    "57 - In Salah", "58 - In Guezzam", "Remote"
 ];
 
 function OverviewView({ stats, setShowOfferModal }) {
@@ -259,6 +265,11 @@ function CompanyOfferDetailView({ offers, handleEdit, handleAppResponse }) {
     loadOfferData();
   }, [id]);
 
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
   const loadOfferData = async () => {
     setLoading(true);
     try {
@@ -281,102 +292,28 @@ function CompanyOfferDetailView({ offers, handleEdit, handleAppResponse }) {
     setSelectedStudent(null);
   };
 
-  if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600" size={40} /></div>;
-  if (!offer) return <div className="py-20 text-center"><p className="font-black text-gray-500 text-xl">Offer not found</p><button onClick={() => navigate('/company/internships')} className="mt-4 px-6 py-2 bg-indigo-100 text-indigo-600 rounded-xl font-black text-sm">Go Back</button></div>;
+  if (loading) return (
+    <Modal title="Loading..." onClose={() => navigate('/company/internships')}>
+      <div className="flex justify-center py-20"><Loader2 className="animate-spin text-indigo-600" size={40} /></div>
+    </Modal>
+  );
+  if (!offer) return (
+    <Modal title="Error" onClose={() => navigate('/company/internships')}>
+      <div className="py-20 text-center">
+        <p className="font-black text-gray-500 text-xl mb-4">Offer not found</p>
+        <button onClick={() => navigate('/company/internships')} className="px-6 py-2 bg-indigo-100 text-indigo-600 rounded-xl font-black text-sm">Go Back</button>
+      </div>
+    </Modal>
+  );
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      <button onClick={() => navigate('/company/internships')} className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-indigo-600 transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-        Back to Internship Offers
-      </button>
-
-      <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
-        {/* HERO BANNER */}
-        <div className="h-48 w-full bg-indigo-50 relative border-b border-gray-100">
-          {offer.photo ? (
-             <img src={getMediaUrl(offer.photo)} alt={offer.title} className="w-full h-full object-cover" />
-          ) : (
-             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-indigo-100">
-                <span className="text-6xl font-black text-indigo-200 uppercase tracking-tighter">
-                   {(offer.title || 'In').substring(0, 2)}
-                </span>
-             </div>
-          )}
-        </div>
-        
-        {/* DETAILS */}
-        <div className="p-8 flex flex-col md:flex-row justify-between items-start gap-4">
-          <div>
-            <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-2">{offer.title}</h2>
-            <div className="flex flex-wrap gap-3 items-center">
-              <span className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest border ${offer.is_active ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
-                {offer.is_active ? 'Active' : 'Inactive'}
-              </span>
-              <span className="text-sm font-bold text-gray-500">{offer.is_remote ? <span className="flex items-center gap-1"><Wifi size={14} /> Remote</span> : offer.wilaya || offer.location || 'Algeria'}</span>
-              <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-md text-[10px] font-black uppercase tracking-widest border border-indigo-100">
-                {offer.duration_months} {offer.duration_months === 1 ? 'Month' : 'Months'}
-              </span>
-            </div>
-          </div>
-          <button onClick={() => handleEdit(offer)} className="px-6 py-3 bg-indigo-50 text-indigo-600 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-indigo-100 transition-colors flex items-center gap-2 shrink-0">
-            <Edit2 size={16} /> Edit Offer
-          </button>
-        </div>
-      </div>
-
-      <div className="flex justify-between items-center px-2 pt-4">
-        <h3 className="text-2xl font-black text-gray-900 tracking-tight">Applicants</h3>
-        <div className="bg-indigo-50 px-4 py-1.5 rounded-xl border border-indigo-100 text-[11px] font-black text-indigo-600 uppercase tracking-widest">
-          {applications.length} Total
-        </div>
-      </div>
-
-      {applications.length === 0 ? (
-        <div className="py-20 text-center bg-white rounded-3xl border border-gray-200 shadow-sm">
-          <Users size={48} className="mx-auto text-gray-300 mb-4" />
-          <p className="font-black text-gray-900 text-xl">No applicants yet</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {applications.map((app) => (
-            <div key={app.id} className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-xl overflow-hidden border border-gray-100 shrink-0">
-                  {app.student?.profile_image ? (
-                    <img src={getMediaUrl(app.student.profile_image)} alt="Student" className="w-full h-full object-cover" />
-                  ) : (
-                    <span>{(app.student?.full_name || 'S')[0]}</span>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-lg font-black text-gray-900 truncate">{app.student?.full_name}</h4>
-                  <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mt-1 truncate">{app.offer_title}</p>
-                </div>
-              </div>
-              <div className="mb-4">
-                <StatusBadge status={app.status} />
-              </div>
-              <p className="text-[10px] text-gray-400 font-bold mb-4">Applied {new Date(app.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
-              
-              <div className="flex gap-2 pt-4 border-t border-gray-100 mt-auto">
-                <button 
-                  onClick={() => setSelectedStudent(app)}
-                  className="flex-1 py-2.5 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-100 transition-colors"
-                >
-                  View Profile
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Student Profile Drawer */}
-      {selectedStudent && (
-        <Modal title="Digital CV" wide={true} onClose={() => setSelectedStudent(null)}>
-          <div className="flex flex-col lg:flex-row gap-8 items-start w-full max-w-7xl mx-auto">
-            
+    <Modal 
+      title={selectedStudent ? "Digital CV" : "Offer Details"} 
+      wide={true} 
+      onClose={() => selectedStudent ? setSelectedStudent(null) : navigate('/company/internships')}
+    >
+      {selectedStudent ? (
+        <div className="flex flex-col lg:flex-row gap-8 items-start w-full max-w-7xl mx-auto animate-fade-in">
             {/* STUDENT PROFILE (LEFT) */}
             <div className="flex-1 space-y-6 w-full lg:max-w-md">
               <div className="bg-white rounded-[32px] p-8 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col items-center text-center">
@@ -435,8 +372,8 @@ function CompanyOfferDetailView({ offers, handleEdit, handleAppResponse }) {
                 </div>
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-8">
-                    <span className="px-3 py-1 bg-white/20 rounded-lg text-[10px] font-black uppercase tracking-widest backdrop-blur-md">
-                      {offer?.is_paid ? 'Paid' : 'Unpaid'}
+                    <span className="px-3 py-1 bg-white/20 rounded-lg text-[10px] font-black uppercase tracking-widest">
+                      {offer?.type === 'paid' ? 'Paid' : 'Unpaid'}
                     </span>
                     {offer?.company_logo && (
                       <div className="w-10 h-10 rounded-xl bg-white p-2 flex items-center justify-center shrink-0">
@@ -508,10 +445,93 @@ function CompanyOfferDetailView({ offers, handleEdit, handleAppResponse }) {
                 )}
               </div>
             </div>
+        </div>
+      ) : (
+      <div className="space-y-8 animate-fade-in">
+        <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+        {/* HERO BANNER */}
+        <div className="h-48 w-full bg-indigo-50 relative border-b border-gray-100">
+          {offer.photo ? (
+             <img src={getMediaUrl(offer.photo)} alt={offer.title} className="w-full h-full object-cover" />
+          ) : (
+             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-indigo-100">
+                <span className="text-6xl font-black text-indigo-200 uppercase tracking-tighter">
+                   {(offer.title || 'In').substring(0, 2)}
+                </span>
+             </div>
+          )}
+        </div>
+        
+        {/* DETAILS */}
+        <div className="p-8 flex flex-col md:flex-row justify-between items-start gap-4">
+          <div>
+            <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-2">{offer.title}</h2>
+            <div className="flex flex-wrap gap-3 items-center">
+              <span className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest border ${offer.is_active ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                {offer.is_active ? 'Active' : 'Inactive'}
+              </span>
+              <span className="text-sm font-bold text-gray-500">{offer.is_remote ? <span className="flex items-center gap-1"><Wifi size={14} /> Remote</span> : offer.wilaya || offer.location || 'Algeria'}</span>
+              <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-md text-[10px] font-black uppercase tracking-widest border border-indigo-100">
+                {offer.duration_months} {offer.duration_months === 1 ? 'Month' : 'Months'}
+              </span>
+            </div>
           </div>
-        </Modal>
+          <button onClick={() => { navigate('/company/internships'); handleEdit(offer); }} className="px-6 py-3 bg-indigo-50 text-indigo-600 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-indigo-100 transition-colors flex items-center gap-2 shrink-0">
+            <Edit2 size={16} /> Edit Offer
+          </button>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center px-2 pt-4">
+        <h3 className="text-2xl font-black text-gray-900 tracking-tight">Applicants</h3>
+        <div className="bg-indigo-50 px-4 py-1.5 rounded-xl border border-indigo-100 text-[11px] font-black text-indigo-600 uppercase tracking-widest">
+          {applications.length} Total
+        </div>
+      </div>
+
+      {applications.length === 0 ? (
+        <div className="py-20 text-center bg-white rounded-3xl border border-gray-200 shadow-sm">
+          <Users size={48} className="mx-auto text-gray-300 mb-4" />
+          <p className="font-black text-gray-900 text-xl">No applicants yet</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {applications.map((app) => (
+            <div key={app.id} className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-xl overflow-hidden border border-gray-100 shrink-0">
+                  {app.student?.profile_image ? (
+                    <img src={getMediaUrl(app.student.profile_image)} alt="Student" className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{(app.student?.full_name || 'S')[0]}</span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-lg font-black text-gray-900 truncate">{app.student?.full_name}</h4>
+                  <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mt-1 truncate">{app.offer_title}</p>
+                </div>
+              </div>
+              <div className="mb-4">
+                <StatusBadge status={app.status} />
+              </div>
+              <p className="text-[10px] text-gray-400 font-bold mb-4">Applied {new Date(app.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+              
+              <div className="flex gap-2 pt-4 border-t border-gray-100 mt-auto">
+                <button 
+                  onClick={() => setSelectedStudent(app)}
+                  className="flex-1 py-2.5 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-100 transition-colors"
+                >
+                  View Profile
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
-    </div>
+
+      </div>
+      )}
+    </Modal>
   );
 }
 
@@ -816,8 +836,14 @@ export default function CompanyDashboard() {
         <Routes>
           <Route path="/" element={<Navigate to="internships" replace />} />
           <Route path="/dashboard" element={<OverviewView stats={companyStats} setShowOfferModal={setShowOfferModal} />} />
-          <Route path="/internships" element={<InternshipsView offers={offers} loading={loadingOffers} handleEdit={handleEdit} handleDelete={handleDelete} setShowOfferModal={setShowOfferModal} setEditingOffer={setEditingOffer} setOfferForm={setOfferForm} />} />
-          <Route path="/internships/:id" element={<CompanyOfferDetailView offers={offers} handleEdit={handleEdit} handleAppResponse={handleAppResponse} />} />
+          <Route path="/internships/*" element={
+            <>
+              <InternshipsView offers={offers} loading={loadingOffers} handleEdit={handleEdit} handleDelete={handleDelete} setShowOfferModal={setShowOfferModal} setEditingOffer={setEditingOffer} setOfferForm={setOfferForm} />
+              <Routes>
+                <Route path=":id" element={<CompanyOfferDetailView offers={offers} handleEdit={handleEdit} handleAppResponse={handleAppResponse} />} />
+              </Routes>
+            </>
+          } />
           <Route path="/stats" element={<StatsView stats={companyStats} />} />
         </Routes>
 
@@ -981,7 +1007,7 @@ export default function CompanyDashboard() {
 
         {/* RESET MODAL */}
         {showResetModal && (
-          <div className="fixed inset-0 z-[100] bg-gray-900/40 backdrop-blur-md flex items-center justify-center p-6 animate-fade-in" onClick={() => setShowResetModal(false)}>
+          <div className="fixed inset-0 z-[100] bg-gray-900/40 flex items-center justify-center p-6 animate-fade-in" onClick={() => setShowResetModal(false)}>
             <div className="bg-white rounded-[32px] p-8 sm:p-12 max-w-md w-full shadow-2xl shadow-rose-900/10 border border-rose-50 animate-slide-up" onClick={e => e.stopPropagation()}>
               <div className="w-20 h-20 bg-rose-50 rounded-3xl flex items-center justify-center mx-auto mb-8 text-rose-600 shadow-inner border border-rose-100/50">
                 <Globe size={36} className="text-rose-500" />

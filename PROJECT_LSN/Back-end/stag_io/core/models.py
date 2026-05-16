@@ -394,15 +394,24 @@ class InternshipOffer(models.Model):
         if delta <= 0:
             return 'Invalid dates'
 
-        months = round(delta / 30)
-        if months >= 1 and abs(delta - months * 30) <= 5:
-            return f'{months} month{"s" if months > 1 else ""}'
-
-        weeks = round(delta / 7)
-        if weeks >= 1 and abs(delta - weeks * 7) <= 3:
-            return f'{weeks} week{"s" if weeks > 1 else ""}'
-
-        return f'{delta} day{"s" if delta > 1 else ""}'
+        months = delta // 30
+        remaining_days = delta % 30
+        
+        weeks = remaining_days // 7
+        days = remaining_days % 7
+        
+        parts = []
+        if months > 0:
+            parts.append(f'{months} month{"s" if months > 1 else ""}')
+        if weeks > 0:
+            parts.append(f'{weeks} week{"s" if weeks > 1 else ""}')
+        if days > 0:
+            parts.append(f'{days} day{"s" if days > 1 else ""}')
+            
+        if not parts:
+            return "0 days"
+            
+        return ", ".join(parts)
 
 
 class Notification(models.Model):

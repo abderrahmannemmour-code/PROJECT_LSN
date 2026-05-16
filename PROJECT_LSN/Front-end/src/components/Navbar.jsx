@@ -9,6 +9,7 @@ import {
   X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import logoImg from '../assets/logo.png';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -34,9 +35,11 @@ export default function Navbar() {
         
         {/* LOGO */}
         <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 group-hover:rotate-12 transition-transform">
-            <span className="font-black text-xl">S</span>
-          </div>
+          <img 
+            src={logoImg} 
+            alt="STAG.IO Logo" 
+            className="w-10 h-10 object-contain group-hover:scale-110 transition-transform drop-shadow-md"
+          />
           <span className={`text-2xl font-black tracking-tighter transition-colors ${scrolled ? 'text-gray-900' : 'text-gray-900 lg:text-white'}`}>
             STAG<span className="text-indigo-600">.IO</span>
           </span>

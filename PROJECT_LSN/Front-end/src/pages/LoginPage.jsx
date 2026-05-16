@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import logoImg from '../assets/logo.png';
 import { useAuth } from '../context/AuthContext';
 import { 
   Mail, 
@@ -48,7 +49,7 @@ export default function LoginPage() {
         
         <div className="relative z-10">
           <Link to="/" className="text-3xl font-black text-white tracking-tighter flex items-center gap-2">
-            <div className="w-8 h-8 bg-white rounded-lg shadow-sm"></div>
+            <img src={logoImg} alt="STAG.IO Logo" className="w-8 h-8 object-contain brightness-0 invert" />
             Stag.io
           </Link>
           
@@ -62,27 +63,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="relative z-10 space-y-8">
-          <div className="flex gap-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white">
-                <Star size={20} fill="currentColor" className="text-amber-300" />
-              </div>
-            ))}
-          </div>
-          <div className="p-8 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 max-w-lg shadow-xl">
-            <p className="text-lg text-white font-medium italic leading-relaxed">
-              "Precision matching that actually works. We found our top three engineering interns on Stag.io in less than a week."
-            </p>
-            <div className="mt-6 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-indigo-400 border-2 border-indigo-300 overflow-hidden shrink-0"></div>
-              <div>
-                <p className="text-sm font-black text-white tracking-tight">Sarah Jenkins</p>
-                <p className="text-[11px] font-bold text-indigo-200 uppercase tracking-widest mt-0.5">Lead Recruiter at Velo</p>
-              </div>
-            </div>
-          </div>
-        </div>
+
       </div>
 
       {/* RIGHT SIDE - FORM */}

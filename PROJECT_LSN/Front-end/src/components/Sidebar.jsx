@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getMediaUrl } from '../api/axios';
+import logoImg from '../assets/logo.png';
 
 export default function Sidebar({ role }) {
   const { user, logout } = useAuth();
@@ -41,7 +42,7 @@ export default function Sidebar({ role }) {
     { name: 'Digital CV', icon: Network, path: `/${role}/cv` },
   ] : [
     { name: 'Dashboard', icon: LayoutDashboard, path: `/${role}` },
-    { name: 'Internship Offers', icon: Briefcase, path: `/${role}/internships` },
+    { name: 'Manage Applications', icon: Briefcase, path: `/${role}/internships` },
     { name: 'Notifications', icon: Bell, path: `/${role}/notifications`, badge: true },
   ];
 
@@ -55,7 +56,7 @@ export default function Sidebar({ role }) {
       {/* BRANDING */}
       <div className="p-10 pb-12">
         <Link to="/" className="text-3xl font-black text-indigo-600 tracking-tighter flex items-center gap-2 group">
-          <div className="w-8 h-8 bg-indigo-600 rounded-lg group-hover:rotate-12 transition-transform shadow-md"></div>
+          <img src={logoImg} alt="STAG.IO Logo" className="w-8 h-8 object-contain group-hover:scale-110 transition-transform" />
           Stag.io
         </Link>
       </div>

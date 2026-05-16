@@ -206,7 +206,7 @@ export default function StudentOfferModal({ offerId, onClose, onApplySuccess }) 
                     {offer.type === 'paid' && offer.salary_per_week && (
                       <div className="space-y-1">
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5"><Zap size={12} /> Salary</p>
-                        <p className="text-lg font-black text-emerald-600">{offer.salary_per_week} DA/week</p>
+                        <p className="text-lg font-black text-emerald-600">{offer.salary_per_week} DA/month</p>
                       </div>
                     )}
                     {offer.start_date && (

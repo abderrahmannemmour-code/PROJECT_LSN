@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import logoImg from '../assets/logo.png';
 import {
   User,
   Briefcase,
@@ -38,11 +39,14 @@ const ALLOWED_STUDENT_DOMAINS = [
 ];
 
 export default function RegisterPage() {
+  const location = useLocation();
+  const initialRole = location.state?.role || 'student';
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'student',
+    role: initialRole,
     full_name: '',    // Student only
     name: '',         // Company only
     phone_number: '', // Company only
@@ -129,7 +133,7 @@ export default function RegisterPage() {
 
         <div className="relative z-10">
           <Link to="/" className="text-3xl font-black text-white tracking-tighter flex items-center gap-2">
-            <div className="w-8 h-8 bg-white rounded-lg shadow-sm"></div>
+            <img src={logoImg} alt="STAG.IO Logo" className="w-8 h-8 object-contain brightness-0 invert" />
             Stag.io
           </Link>
 
@@ -144,9 +148,6 @@ export default function RegisterPage() {
                 { title: "Career Growth", desc: "Bridge the gap between university and your professional future." }
               ].map((item, i) => (
                 <div key={i} className="flex gap-6 group">
-                  <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-amber-300 shrink-0 group-hover:bg-white/20 transition-all border border-white/20 shadow-sm">
-                    <CheckCircle2 size={24} />
-                  </div>
                   <div>
                     <h3 className="text-xl font-black text-white mb-2 tracking-tight">{item.title}</h3>
                     <p className="text-indigo-100 font-medium opacity-90">{item.desc}</p>
@@ -254,7 +255,7 @@ export default function RegisterPage() {
                 </>
               )}
 
-              <div className="space-y-2">
+              <div className="space-y-2 flex flex-col justify-end">
                 <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest px-1">
                   Email Address {formData.role === 'student' && <span className="text-amber-500 normal-case tracking-normal font-normal ml-1">(use your university email)</span>}
                 </label>
@@ -272,7 +273,7 @@ export default function RegisterPage() {
                 {errors.email && <p className="text-rose-500 text-xs font-bold px-1">{errors.email}</p>}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 flex flex-col justify-end">
                 <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest px-1">Location (Wilaya)</label>
                 <div className="relative group">
                   <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" size={20} />
