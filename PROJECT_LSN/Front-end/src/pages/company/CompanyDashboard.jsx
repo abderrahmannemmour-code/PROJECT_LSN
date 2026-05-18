@@ -168,7 +168,7 @@ function InternshipsView({ offers, loading, handleEdit, handleDelete, setShowOff
           <p className="text-gray-500 font-medium mt-1">Manage your listings and review applicants.</p>
         </div>
         <button 
-          onClick={() => { setEditingOffer(null); setOfferForm({title:'', description:'', location:'', requirements:'', is_active:true, imageFile:null, type:'unpaid', salary:'', duration_months:1, skills:[], is_remote:false}); setShowOfferModal(true); }}
+          onClick={() => { setEditingOffer(null); setOfferForm({title:'', description:'', location:'', requirements:'', status:'open', imageFile:null, type:'unpaid', salary:'', duration_months:1, skills:[], is_remote:false}); setShowOfferModal(true); }}
           className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-md hover:bg-indigo-700 transition-all shrink-0"
         >
           <Plus size={18} />
@@ -183,7 +183,7 @@ function InternshipsView({ offers, loading, handleEdit, handleDelete, setShowOff
           <FileText size={48} className="mx-auto text-gray-300 mb-4" />
           <h3 className="text-xl font-black text-gray-900 mb-2">No offers posted yet</h3>
           <p className="text-gray-500 font-medium mb-6">Create your first internship listing to start attracting talent.</p>
-          <button onClick={() => { setEditingOffer(null); setOfferForm({ title: '', description: '', location: '', requirements: '', is_active: true, imageFile: null, type: 'unpaid', salary: '', start_date: '', end_date: '', skills: [], is_remote: false }); setShowOfferModal(true); }} className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-sm">
+          <button onClick={() => { setEditingOffer(null); setOfferForm({ title: '', description: '', location: '', requirements: '', status: 'open', imageFile: null, type: 'unpaid', salary: '', start_date: '', end_date: '', skills: [], is_remote: false }); setShowOfferModal(true); }} className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-sm">
             Post First Offer
           </button>
         </div>
@@ -231,8 +231,8 @@ function InternshipsView({ offers, loading, handleEdit, handleDelete, setShowOff
                       </span>
                     </td>
                     <td className="px-6 py-5">
-                      <span className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest border ${offer.is_active ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
-                        {offer.is_active ? 'Active' : 'Inactive'}
+                      <span className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest border ${offer.status === 'open' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                        {offer.status === 'open' ? 'Open' : 'Closed'}
                       </span>
                     </td>
                     <td className="px-6 py-5 text-right">
@@ -746,7 +746,7 @@ export default function CompanyDashboard() {
           location: offerForm.is_remote ? '' : offerForm.location,
           wilaya: offerForm.is_remote ? '' : offerForm.location,
           requirements: offerForm.requirements,
-          is_active: offerForm.is_active,
+          status: offerForm.status,
           type: offerForm.type,
           salary_per_week: offerForm.type === 'paid' ? offerForm.salary : null,
           start_date: offerForm.start_date || null,
@@ -762,7 +762,7 @@ export default function CompanyDashboard() {
           location: offerForm.is_remote ? '' : offerForm.location,
           wilaya: offerForm.is_remote ? '' : offerForm.location,
           requirements: offerForm.requirements,
-          is_active: offerForm.is_active,
+          status: offerForm.status,
           type: offerForm.type,
           salary_per_week: offerForm.type === 'paid' ? offerForm.salary : null,
           start_date: offerForm.start_date || null,
@@ -794,7 +794,7 @@ export default function CompanyDashboard() {
       description: offer.description || '',
       location: offer.wilaya || offer.location || '',
       requirements: offer.requirements || '',
-      is_active: offer.is_active,
+      status: offer.status || 'open',
       imageFile: null,
       type: offer.type || 'unpaid',
       salary: offer.salary_per_week || '',
@@ -925,6 +925,13 @@ export default function CompanyDashboard() {
                     onChange={e => setOfferForm({...offerForm, end_date: e.target.value})}
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest">Offer Status *</label>
+                <select className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-bold text-gray-900 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-50 focus:outline-none transition-all" value={offerForm.status} onChange={e => setOfferForm({...offerForm, status: e.target.value})}>
+                  <option value="open">Open (Accepting Applicants)</option>
+                  <option value="closed">Closed (Not Accepting)</option>
+                </select>
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest">Offer Picture</label>

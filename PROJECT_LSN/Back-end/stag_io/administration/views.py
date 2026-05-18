@@ -518,7 +518,10 @@ class StatisticsStudentsView(APIView):
 
         total_students = students_qs.count()
         students_with_internships = students_qs.filter(
-            internships__isnull=False,
+            internships__status__in=[
+                Internship.Status.ACCEPTED_BY_COMPANY,
+                Internship.Status.VALIDATED,
+            ],
         ).distinct().count()
 
         return Response(

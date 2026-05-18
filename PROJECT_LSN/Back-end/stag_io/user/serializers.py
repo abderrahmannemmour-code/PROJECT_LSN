@@ -68,6 +68,7 @@ class CompanyRegisterSerializer(serializers.ModelSerializer):
             'email', 'password',
             'name', 'description',
             'wilaya', 'website',
+            'phone_number',
         ]
 
     def create(self, validated_data):
